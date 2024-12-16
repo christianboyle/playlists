@@ -195,3 +195,42 @@ body.dark-mode .playlist {
   border-left: 10px solid #121212;
   border-right: 10px solid #121212;
 }
+
+/* Add grid view styles */
+.playlists-container.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: 500px;
+  gap: 20px;
+  padding: 40px;
+  margin-top: 300px;
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  align-items: start;
+}
+
+.grid-view .playlist {
+  width: 100%;
+  height: 500px;
+  min-width: unset;
+  max-width: unset;
+  max-height: unset;
+  left: 0;
+  border: none;
+}
+
+/* Also update body styles for grid view */
+body:has(.grid-view) {
+  overflow: hidden;
+}
+
+/* Update text container position in grid view */
+body:has(.playlists-container.grid-view) .text-container {
+  position: fixed;
+  left: 40px;
+  top: 5px;
+  transform: none;
+}

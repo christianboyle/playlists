@@ -10,12 +10,15 @@
       <button class="toggle-btn" id="darkModeToggle">
         🌙 Dark Mode
       </button>
+      <button class="toggle-btn" id="viewToggle">
+        📱 Grid View
+      </button>
     </div>
     <div class="text-container">
       <h1>My Playlists</h1>
       <p>A curated collection of music.</p>
     </div>
-    <div class="playlists-container" id="playlist">Loading...</div>
+    <div class="playlists-container" id="playlist"></div>
 
     <script src="./soundcloud-audio.js"></script>
     <script type="module">
@@ -139,18 +142,17 @@
 
         async function loadPlaylists() {
           try {
-            // Clear loading message and set up containers
-            $view.innerHTML = `
-              <div class="text-container">
-                <h1>My Playlists</h1>
-                <p>A curated collection of music.</p>
-              </div>
-            `;
-            
             // Create playlists container
             const playlistsContainer = document.createElement('div');
             playlistsContainer.className = 'playlists-container';
+            $view.innerHTML = ''; // Clear any existing content
             $view.appendChild(playlistsContainer);
+            
+            // Setup grid view toggle
+            setupGridView(playlistsContainer);
+            
+            // Setup scroll handler
+            setupScrollHandler(playlistsContainer);
             
             // Load playlists from JSON file
             const response = await fetch('./sample-playlists.json');
@@ -166,9 +168,6 @@
             
             // Add all placeholder divs to the container
             playlistDivs.forEach(div => playlistsContainer.appendChild(div));
-            
-            // Pass the container reference to setupScrollHandler
-            setupScrollHandler(playlistsContainer);
             
             // Load each playlist
             data.playlists.forEach((playlistUrl, index) => {
@@ -203,17 +202,23 @@
 
         function setupScrollHandler(container) {
           container.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const scrollAmount = e.deltaY * 14;
-            const currentScroll = container.scrollLeft;
-            const maxScroll = container.scrollWidth - container.clientWidth;
-            const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+            const isGridView = container.classList.contains('grid-view');
             
-            container.scrollTo({
-              left: newScrollPosition,
-              behavior: 'smooth'
-            });
-          }, { passive: false });
+            if (!isGridView) {
+              // Horizontal scroll for list view
+              e.preventDefault();
+              const scrollAmount = e.deltaY * 14;
+              const currentScroll = container.scrollLeft;
+              const maxScroll = container.scrollWidth - container.clientWidth;
+              const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+              
+              container.scrollTo({
+                left: newScrollPosition,
+                behavior: 'smooth'
+              });
+            }
+            // In grid view, let the native vertical scrolling work
+          }, { passive: false }); // Always set passive to false, we'll handle preventDefault conditionally
         }
 
         // Replace the existing playlist loading code with this:
@@ -243,6 +248,26 @@
           if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
             darkModeToggle.innerHTML = '☀️ Light Mode';
+          }
+        }
+
+        function setupGridView(playlistsContainer) {
+          const viewToggle = document.getElementById('viewToggle');
+          
+          // Grid view toggle
+          viewToggle.addEventListener('click', () => {
+            playlistsContainer.classList.toggle('grid-view');
+            const isGridView = playlistsContainer.classList.contains('grid-view');
+            viewToggle.innerHTML = isGridView ? '📜 List View' : '📱 Grid View';
+            
+            // Save preference
+            localStorage.setItem('gridView', isGridView);
+          });
+          
+          // Load saved preference
+          if (localStorage.getItem('gridView') === 'true') {
+            playlistsContainer.classList.add('grid-view');
+            viewToggle.innerHTML = '📜 List View';
           }
         }
 
