@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div id="playlist" class="playlist">Loading...</div>
+    <div class="playlists-container" id="playlist">Loading...</div>
 
     <script src="./soundcloud-audio.js"></script>
     <script type="module">
@@ -128,40 +128,60 @@
           return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
         }
 
-        function renderPlaylist(playlist) {
-          const html = `
-            <div class="playlist-card">
-              <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
-                <div class="playlist-artwork">
-                  <img src="${playlist.artwork_url ? playlist.artwork_url.replace('large', 't500x500') : 'https://placeholder.com/500x500'}" alt="${playlist.title}">
-                </div>
-                <div class="playlist-details">
-                  <h1 class="playlist-title">${playlist.title}</h1>
-                  <div class="playlist-info">by ${playlist.user.username}</div>
-                  <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
-                </div>
-              </a>
-            </div>
-          `;
-          $view.innerHTML = html;
+        async function loadPlaylists() {
+          try {
+            // Load playlists from JSON file
+            const response = await fetch('./sample-playlists.json');
+            const data = await response.json();
+            
+            // Clear loading message
+            $view.innerHTML = '';
+            
+            // Load each playlist
+            data.playlists.forEach(playlistUrl => {
+              try {
+                player.resolve(playlistUrl, function(playlist) {
+                  // Create a new div for each playlist
+                  const playlistDiv = document.createElement('div');
+                  playlistDiv.className = 'playlist';
+                  
+                  // Render the playlist into the div
+                  playlistDiv.innerHTML = `
+                    <div class="playlist-card">
+                      <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
+                        <div class="playlist-artwork">
+                          <img src="${playlist.artwork_url ? playlist.artwork_url.replace('large', 't500x500') : 'https://placeholder.com/500x500'}" alt="${playlist.title}">
+                        </div>
+                        <div class="playlist-details">
+                          <h1 class="playlist-title">${playlist.title}</h1>
+                          <div class="playlist-info">by ${playlist.user.username}</div>
+                          <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
+                        </div>
+                      </a>
+                    </div>
+                  `;
+                  
+                  // Add the playlist to the container
+                  $view.appendChild(playlistDiv);
+                });
+              } catch (e) {
+                console.error('Error loading playlist:', playlistUrl, e);
+              }
+            });
+          } catch (e) {
+            console.error('Error loading playlists file:', e);
+            $view.innerHTML = 'Error loading playlists';
+          }
         }
 
-        // Initial token refresh before loading playlist
+        // Replace the existing playlist loading code with this:
         refreshToken().then(token => {
+          console.log('Token received:', token ? 'yes' : 'no');
           currentToken = token;
-          
-          // Load the playlist
-          try {
-            player.resolve(
-              'https://soundcloud.com/saxurn/sets/santa-pilled-rerock',
-              function(playlist) {
-                renderPlaylist(playlist);
-              }
-            );
-          } catch (e) {
-            console.error('Resolve error:', e);
-            $view.innerHTML = 'Error resolving playlist: ' + e.message;
-          }
+          loadPlaylists();
+        }).catch(error => {
+          console.error('Error:', error);
+          $view.innerHTML = 'Error loading playlists';
         });
 
       })(this);
