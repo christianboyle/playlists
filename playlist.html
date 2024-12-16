@@ -130,15 +130,22 @@
 
         async function loadPlaylists() {
           try {
+            // Clear loading message and set up containers
+            $view.innerHTML = `
+              <div class="text-container">
+                <h1>My Playlists</h1>
+                <p>A curated collection of music.</p>
+              </div>
+            `;
+            
+            // Create playlists container
+            const playlistsContainer = document.createElement('div');
+            playlistsContainer.className = 'playlists-container';
+            $view.appendChild(playlistsContainer);
+            
             // Load playlists from JSON file
             const response = await fetch('./sample-playlists.json');
             const data = await response.json();
-            
-            // Clear loading message
-            $view.innerHTML = '';
-            
-            // Create a container to hold playlists in order
-            const playlistsContainer = document.createDocumentFragment();
             
             // Create placeholder divs for each playlist
             const playlistDivs = data.playlists.map((_, index) => {
@@ -151,11 +158,8 @@
             // Add all placeholder divs to the container
             playlistDivs.forEach(div => playlistsContainer.appendChild(div));
             
-            // Add the container to the view
-            $view.appendChild(playlistsContainer);
-            
-            // Setup scroll handling after playlists are added
-            setupScrollHandler();
+            // Pass the container reference to setupScrollHandler
+            setupScrollHandler(playlistsContainer);
             
             // Load each playlist
             data.playlists.forEach((playlistUrl, index) => {
@@ -188,32 +192,12 @@
           }
         }
 
-        function setupScrollHandler() {
-          const container = document.querySelector('.playlists-container');
-          console.log('Setting up scroll handler', {
-            container,
-            scrollWidth: container.scrollWidth,
-            clientWidth: container.clientWidth,
-            hasOverflow: container.scrollWidth > container.clientWidth
-          });
-          
+        function setupScrollHandler(container) {
           container.addEventListener('wheel', (e) => {
             e.preventDefault();
-            
-            const scrollAmount = e.deltaY * 10;
+            const scrollAmount = e.deltaY * 14;
             const currentScroll = container.scrollLeft;
             const maxScroll = container.scrollWidth - container.clientWidth;
-            
-            console.log('Scroll attempt', {
-              deltaY: e.deltaY,
-              scrollAmount,
-              currentScroll,
-              maxScroll,
-              scrollWidth: container.scrollWidth,
-              clientWidth: container.clientWidth
-            });
-            
-            // Ensure we don't scroll beyond bounds
             const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
             
             container.scrollTo({
