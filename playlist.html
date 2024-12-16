@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SoundCloud Playlist Player</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="playlist" class="playlist">Loading...</div>
+
+    <script src="./soundcloud-audio.js"></script>
+    <script type="module">
+      import config from './config.js';
+      
+      (function(global) {
+        'use strict';
+
+        var $view = document.getElementById('playlist');
+        var player = new SoundCloudAudio();
+        var currentToken = null;
+
+        function getStoredToken() {
+          const tokenData = localStorage.getItem('sc_token_data');
+          if (!tokenData) return null;
+          
+          try {
+            const { token, expiresAt } = JSON.parse(tokenData);
+            // Return null if token is expired or will expire in next 5 minutes
+            if (Date.now() >= (expiresAt - 300000)) return null;
+            return token;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function storeToken(token, expiresIn) {
+          const expiresAt = Date.now() + (expiresIn * 1000);
+          localStorage.setItem('sc_token_data', JSON.stringify({
+            token,
+            expiresAt
+          }));
+        }
+
+        async function refreshToken(retryCount = 0) {
+          // Check stored token first
+          const storedToken = getStoredToken();
+          if (storedToken) {
+            console.log('Using stored token');
+            return storedToken;
+          }
+
+          // Maximum retry attempts
+          const maxRetries = 3;
+          // Exponential backoff delay (2^retry * 1000ms)
+          const delay = retryCount ? Math.pow(2, retryCount) * 1000 : 0;
+
+          if (delay) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+
+          try {
+            const response = await fetch('https://api.soundcloud.com/oauth2/token', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: `grant_type=client_credentials&client_id=${config.clientId}&client_secret=${config.clientSecret}`
+            });
+
+            if (response.status === 429) { // Rate limited
+              if (retryCount < maxRetries) {
+                console.log(`Rate limited, retrying in ${delay/1000}s...`);
+                return refreshToken(retryCount + 1);
+              } else {
+                throw new Error('Max retry attempts reached');
+              }
+            }
+
+            const data = await response.json();
+            if (data.access_token) {
+              console.log('New token received');
+              storeToken(data.access_token, data.expires_in || 3600);
+              return data.access_token;
+            } else {
+              throw new Error('Invalid token response');
+            }
+          } catch (error) {
+            console.error('Error refreshing token:', error);
+            throw error;
+          }
+        }
+        
+        // Override the _json method to include Authorization header
+        player._json = function(url, callback) {
+          console.log('Making request to:', url);
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', url);
+          
+          xhr.setRequestHeader('Authorization', 'OAuth ' + currentToken);
+          
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 401) {
+                // Token expired, refresh and retry
+                refreshToken().then(newToken => {
+                  currentToken = newToken;
+                  // Retry the original request
+                  player._json(url, callback);
+                });
+              } else if (xhr.status === 200) {
+                try {
+                  callback(JSON.parse(xhr.responseText));
+                } catch (err) {
+                  console.error('Parse error:', err);
+                }
+              } else {
+                console.error('Request failed:', xhr.status, xhr.responseText);
+              }
+            }
+          };
+
+          xhr.send(null);
+        };
+
+        function formatDuration(ms) {
+          var minutes = Math.floor(ms / 60000);
+          var seconds = ((ms % 60000) / 1000).toFixed(0);
+          return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+        }
+
+        function renderPlaylist(playlist) {
+          const html = `
+            <div class="playlist-card">
+              <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
+                <div class="playlist-artwork">
+                  <img src="${playlist.artwork_url ? playlist.artwork_url.replace('large', 't500x500') : 'https://placeholder.com/500x500'}" alt="${playlist.title}">
+                </div>
+                <div class="playlist-details">
+                  <h1 class="playlist-title">${playlist.title}</h1>
+                  <div class="playlist-info">by ${playlist.user.username}</div>
+                  <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
+                </div>
+              </a>
+            </div>
+          `;
+          $view.innerHTML = html;
+        }
+
+        // Initial token refresh before loading playlist
+        refreshToken().then(token => {
+          currentToken = token;
+          
+          // Load the playlist
+          try {
+            player.resolve(
+              'https://soundcloud.com/saxurn/sets/santa-pilled-rerock',
+              function(playlist) {
+                renderPlaylist(playlist);
+              }
+            );
+          } catch (e) {
+            console.error('Resolve error:', e);
+            $view.innerHTML = 'Error resolving playlist: ' + e.message;
+          }
+        });
+
+      })(this);
+    </script>
+  </body>
+</html> 
