@@ -33,6 +33,7 @@ body {
   flex-wrap: nowrap;
   position: relative;
   z-index: 1;
+}
 
 .playlists-container::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
@@ -143,4 +144,54 @@ body {
   line-height: 1.6;
   margin: 0;
   opacity: 0.8;
+}
+
+.controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 2;
+}
+
+.toggle-btn {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+}
+
+body.dark-mode .text-container {
+  color: #fff;
+}
+
+body.dark-mode .toggle-btn {
+  background: #2a2a2a;
+  border-color: #333;
+  color: #fff;
+}
+
+body.dark-mode .toggle-btn:hover {
+  background: #333;
+}
+
+body.dark-mode .playlist {
+  border-left: 10px solid #121212;
+  border-right: 10px solid #121212;
 }

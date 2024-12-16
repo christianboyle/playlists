@@ -6,6 +6,15 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <div class="controls">
+      <button class="toggle-btn" id="darkModeToggle">
+        🌙 Dark Mode
+      </button>
+    </div>
+    <div class="text-container">
+      <h1>My Playlists</h1>
+      <p>A curated collection of music.</p>
+    </div>
     <div class="playlists-container" id="playlist">Loading...</div>
 
     <script src="./soundcloud-audio.js"></script>
@@ -216,6 +225,29 @@
           console.error('Error:', error);
           $view.innerHTML = 'Error loading playlists';
         });
+
+        function setupDarkMode() {
+          const darkModeToggle = document.getElementById('darkModeToggle');
+          
+          // Dark mode toggle
+          darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            darkModeToggle.innerHTML = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
+          });
+          
+          // Load saved preference
+          if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.innerHTML = '☀️ Light Mode';
+          }
+        }
+
+        // Call setupDarkMode after the DOM is loaded
+        setupDarkMode();
 
       })(this);
     </script>
