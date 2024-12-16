@@ -137,16 +137,29 @@
             // Clear loading message
             $view.innerHTML = '';
             
+            // Create a container to hold playlists in order
+            const playlistsContainer = document.createDocumentFragment();
+            
+            // Create placeholder divs for each playlist
+            const playlistDivs = data.playlists.map((_, index) => {
+              const div = document.createElement('div');
+              div.className = 'playlist';
+              div.innerHTML = 'Loading...';
+              return div;
+            });
+            
+            // Add all placeholder divs to the container
+            playlistDivs.forEach(div => playlistsContainer.appendChild(div));
+            
+            // Add the container to the view
+            $view.appendChild(playlistsContainer);
+            
             // Load each playlist
-            data.playlists.forEach(playlistUrl => {
+            data.playlists.forEach((playlistUrl, index) => {
               try {
                 player.resolve(playlistUrl, function(playlist) {
-                  // Create a new div for each playlist
-                  const playlistDiv = document.createElement('div');
-                  playlistDiv.className = 'playlist';
-                  
-                  // Render the playlist into the div
-                  playlistDiv.innerHTML = `
+                  // Update the corresponding placeholder div
+                  playlistDivs[index].innerHTML = `
                     <div class="playlist-card">
                       <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
                         <div class="playlist-artwork">
@@ -160,12 +173,10 @@
                       </a>
                     </div>
                   `;
-                  
-                  // Add the playlist to the container
-                  $view.appendChild(playlistDiv);
                 });
               } catch (e) {
                 console.error('Error loading playlist:', playlistUrl, e);
+                playlistDivs[index].innerHTML = 'Error loading playlist';
               }
             });
           } catch (e) {
