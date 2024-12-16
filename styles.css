@@ -7,14 +7,19 @@ body {
 }
 
 .playlists-container {
-  display: flex;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+
   gap: 20px;
-  padding: 20px;
+  grid-auto-flow: column;
   overflow-x: auto;
   width: 100%;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .playlists-container::-webkit-scrollbar {
@@ -96,4 +101,11 @@ body {
   .playlist-title {
     font-size: 20px;
   }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
 }
