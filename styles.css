@@ -1,3 +1,7 @@
+:root {
+  --text-container-height: 200px; /* Approximate height of text container */
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -16,6 +20,7 @@ body {
   background-color: #fff;
   width: 100%;
   overflow: hidden;
+  border: none;
 }
 
 .playlists-container {
@@ -33,6 +38,7 @@ body {
   flex-wrap: nowrap;
   position: relative;
   z-index: 1;
+  border: none;
 }
 
 .playlists-container::-webkit-scrollbar {
@@ -124,13 +130,17 @@ body {
 }
 
 .text-container {
-  position: fixed;
+  position: absolute;
   left: 40px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc(50vh - var(--text-container-height) / 2);
   width: 400px;
+  height: var(--text-container-height);
   z-index: 0;
   color: #333;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .text-container h1 {
@@ -153,6 +163,7 @@ body {
   display: flex;
   gap: 12px;
   z-index: 2;
+  border: none;
 }
 
 .toggle-btn {
