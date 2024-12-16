@@ -154,6 +154,9 @@
             // Add the container to the view
             $view.appendChild(playlistsContainer);
             
+            // Setup scroll handling after playlists are added
+            setupScrollHandler();
+            
             // Load each playlist
             data.playlists.forEach((playlistUrl, index) => {
               try {
@@ -183,6 +186,41 @@
             console.error('Error loading playlists file:', e);
             $view.innerHTML = 'Error loading playlists';
           }
+        }
+
+        function setupScrollHandler() {
+          const container = document.querySelector('.playlists-container');
+          console.log('Setting up scroll handler', {
+            container,
+            scrollWidth: container.scrollWidth,
+            clientWidth: container.clientWidth,
+            hasOverflow: container.scrollWidth > container.clientWidth
+          });
+          
+          container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const scrollAmount = e.deltaY * 10;
+            const currentScroll = container.scrollLeft;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            
+            console.log('Scroll attempt', {
+              deltaY: e.deltaY,
+              scrollAmount,
+              currentScroll,
+              maxScroll,
+              scrollWidth: container.scrollWidth,
+              clientWidth: container.clientWidth
+            });
+            
+            // Ensure we don't scroll beyond bounds
+            const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+            
+            container.scrollTo({
+              left: newScrollPosition,
+              behavior: 'smooth'
+            });
+          }, { passive: false });
         }
 
         // Replace the existing playlist loading code with this:
