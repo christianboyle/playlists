@@ -15,8 +15,8 @@
       </button>
     </div>
     <div class="text-container">
-      <h1>My Playlists</h1>
-      <p>A curated collection of music.</p>
+      <h1>2☯24</h1>
+      <p>52 weeks, 52 playlists</p>
     </div>
     <div class="playlists-container" id="playlist"></div>
 
@@ -155,7 +155,7 @@
             setupScrollHandler(playlistsContainer);
             
             // Load playlists from JSON file
-            const response = await fetch('./sample-playlists.json');
+            const response = await fetch('./playlists.json');
             const data = await response.json();
             
             // Create placeholder divs for each playlist
