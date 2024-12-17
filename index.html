@@ -37,7 +37,6 @@
           
           try {
             const { token, expiresAt } = JSON.parse(tokenData);
-            // Return null if token is expired or will expire in next 5 minutes
             if (Date.now() >= (expiresAt - 300000)) return null;
             return token;
           } catch (e) {
@@ -54,16 +53,12 @@
         }
 
         async function refreshToken(retryCount = 0) {
-          // Check stored token first
           const storedToken = getStoredToken();
           if (storedToken) {
-            console.log('Using stored token');
             return storedToken;
           }
 
-          // Maximum retry attempts
           const maxRetries = 3;
-          // Exponential backoff delay (2^retry * 1000ms)
           const delay = retryCount ? Math.pow(2, retryCount) * 1000 : 0;
 
           if (delay) {
@@ -79,9 +74,8 @@
               body: `grant_type=client_credentials&client_id=${config.clientId}&client_secret=${config.clientSecret}`
             });
 
-            if (response.status === 429) { // Rate limited
+            if (response.status === 429) {
               if (retryCount < maxRetries) {
-                console.log(`Rate limited, retrying in ${delay/1000}s...`);
                 return refreshToken(retryCount + 1);
               } else {
                 throw new Error('Max retry attempts reached');
@@ -90,48 +84,34 @@
 
             const data = await response.json();
             if (data.access_token) {
-              console.log('New token received');
               storeToken(data.access_token, data.expires_in || 3600);
               return data.access_token;
             } else {
               throw new Error('Invalid token response');
             }
           } catch (error) {
-            console.error('Error refreshing token:', error);
             throw error;
           }
         }
         
-        // Override the _json method to include Authorization header
         player._json = function(url, callback) {
-          console.log('Making request to:', url);
           var xhr = new XMLHttpRequest();
           xhr.open('GET', url);
-          
-          console.log('Using token:', currentToken);
           xhr.setRequestHeader('Authorization', 'OAuth ' + currentToken);
           
           xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-              console.log('Response status:', xhr.status);
-              
               if (xhr.status === 401) {
-                console.log('Token expired, refreshing...');
                 refreshToken().then(newToken => {
                   currentToken = newToken;
-                  console.log('Got new token, retrying request');
                   player._json(url, callback);
                 });
               } else if (xhr.status === 200) {
                 try {
                   const data = JSON.parse(xhr.responseText);
-                  console.log('Successfully loaded playlist:', data.title);
                   callback(data);
                 } catch (err) {
-                  console.error('Parse error:', err, xhr.responseText);
                 }
-              } else {
-                console.error('Request failed:', xhr.status, xhr.responseText);
               }
             }
           };
@@ -147,30 +127,24 @@
 
         async function loadPlaylists() {
           try {
-            // Create playlists container
             const playlistsContainer = document.createElement('div');
             playlistsContainer.className = 'playlists-container';
             $view.innerHTML = '';
             $view.appendChild(playlistsContainer);
             
-            // Setup toggles and handlers
             setupGridView(playlistsContainer);
             setupScrollHandler(playlistsContainer);
             
-            // Load playlists from JSON file
             const response = await fetch('./playlists.json');
             const data = await response.json();
             
-            // Configure chunking
             const CHUNK_SIZE = 5;
             const chunks = [];
             
-            // Split playlists into chunks
             for (let i = 0; i < data.playlists.length; i += CHUNK_SIZE) {
               chunks.push(data.playlists.slice(i, i + CHUNK_SIZE));
             }
             
-            // Create all placeholder divs upfront
             const playlistDivs = data.playlists.map((_, index) => {
               const div = document.createElement('div');
               div.className = 'playlist';
@@ -183,12 +157,9 @@
               return div;
             });
             
-            // Load chunks sequentially
             for (let i = 0; i < chunks.length; i++) {
               const chunk = chunks[i];
-              console.log(`Loading chunk ${i + 1} of ${chunks.length}`);
               
-              // Load each playlist in the chunk
               await Promise.all(chunk.map((playlistUrl, chunkIndex) => {
                 const globalIndex = i * CHUNK_SIZE + chunkIndex;
                 return new Promise((resolve) => {
@@ -196,7 +167,6 @@
                     player.resolve(playlistUrl, function(playlist) {
                       const playlistDiv = playlistDivs[globalIndex];
                       if (!playlistDiv || !playlistDiv.isConnected) {
-                        console.error('Playlist div not found or disconnected:', globalIndex);
                         resolve();
                         return;
                       }
@@ -222,20 +192,17 @@
                       resolve();
                     });
                   } catch (e) {
-                    console.error('Error loading playlist:', playlistUrl, e);
                     resolve();
                   }
                 });
               }));
               
-              // Add a small delay between chunks to prevent overwhelming the browser
               if (i < chunks.length - 1) {
                 await new Promise(resolve => setTimeout(resolve, 500));
               }
             }
             
           } catch (e) {
-            console.error('Error loading playlists file:', e);
             $view.innerHTML = 'Error loading playlists';
           }
         }
@@ -245,7 +212,6 @@
             const isGridView = container.classList.contains('grid-view');
             
             if (!isGridView) {
-              // Horizontal scroll for list view
               e.preventDefault();
               const scrollAmount = e.deltaY * 14;
               const currentScroll = container.scrollLeft;
@@ -257,28 +223,22 @@
                 behavior: 'smooth'
               });
             }
-            // In grid view, let the native vertical scrolling work
-          }, { passive: false }); // Always set passive to false, we'll handle preventDefault conditionally
+          }, { passive: false });
         }
 
-        // Replace the existing playlist loading code with this:
         refreshToken().then(token => {
-          console.log('Token received:', token ? 'yes' : 'no');
           currentToken = token;
           loadPlaylists();
-        }).catch(error => {
-          console.error('Error:', error);
+        }).catch(() => {
           $view.innerHTML = 'Error loading playlists';
         });
 
         function setupDarkMode() {
           const darkModeToggle = document.getElementById('darkModeToggle');
           
-          // Check for saved preference first, then system preference
           const savedPreference = localStorage.getItem('darkMode');
           const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           
-          // If no saved preference, use system preference
           if (savedPreference === null && systemPrefersDark) {
             document.body.classList.add('dark-mode');
             darkModeToggle.innerHTML = '☀️ Light Mode';
@@ -287,13 +247,11 @@
             darkModeToggle.innerHTML = '☀️ Light Mode';
           }
           
-          // Dark mode toggle
           darkModeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const isDarkMode = document.body.classList.contains('dark-mode');
             darkModeToggle.innerHTML = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
             
-            // Save preference
             localStorage.setItem('darkMode', isDarkMode);
           });
         }
@@ -301,24 +259,20 @@
         function setupGridView(playlistsContainer) {
           const viewToggle = document.getElementById('viewToggle');
           
-          // Grid view toggle
           viewToggle.addEventListener('click', () => {
             playlistsContainer.classList.toggle('grid-view');
             const isGridView = playlistsContainer.classList.contains('grid-view');
             viewToggle.innerHTML = isGridView ? '📜 List View' : '📱 Grid View';
             
-            // Save preference
             localStorage.setItem('gridView', isGridView);
           });
           
-          // Load saved preference
           if (localStorage.getItem('gridView') === 'true') {
             playlistsContainer.classList.add('grid-view');
             viewToggle.innerHTML = '📜 List View';
           }
         }
 
-        // Call setupDarkMode after the DOM is loaded
         setupDarkMode();
 
       })(this);
