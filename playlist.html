@@ -162,7 +162,11 @@
             const playlistDivs = data.playlists.map((_, index) => {
               const div = document.createElement('div');
               div.className = 'playlist';
-              div.innerHTML = 'Loading...';
+              div.innerHTML = `
+                <div class="playlist-card">
+                  <div class="skeleton-loader"></div>
+                </div>
+              `;
               return div;
             });
             

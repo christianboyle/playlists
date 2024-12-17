@@ -259,3 +259,73 @@ body:has(.playlists-container.grid-view) .text-container {
   top: 70px;
   transform: none;
 }
+
+/* Add skeleton loader styles */
+.skeleton-loader {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.skeleton-loader:after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-repeat: no-repeat;
+  background-image: 
+    /* Shimmer effect */
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.5) 50%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    /* Gradient overlay for text area */
+    linear-gradient(
+      transparent 70%,
+      rgba(0, 0, 0, 0.8) 100%
+    ),
+    /* Title placeholder */
+    linear-gradient(#aaaaaa 24px, transparent 0),
+    /* Subtitle placeholders */
+    linear-gradient(#aaaaaa 16px, transparent 0),
+    linear-gradient(#aaaaaa 16px, transparent 0);
+  
+  background-size:
+    50% 100%,
+    100% 100%,
+    200px 24px,
+    150px 16px,
+    100px 16px;
+  
+  background-position:
+    -100% 0,
+    0 0,
+    20px calc(100% - 80px),
+    20px calc(100% - 45px),
+    20px calc(100% - 20px);
+  
+  animation: skeleton-animation 2s infinite;
+}
+
+body.dark-mode .skeleton-loader {
+  background-color: #2a2a2a;
+}
+
+@keyframes skeleton-animation {
+  to {
+    background-position:
+      200% 0,
+      0 0,
+      20px calc(100% - 80px),
+      20px calc(100% - 45px),
+      20px calc(100% - 20px);
+  }
+}
