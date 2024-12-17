@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "watchify . -s SoundCloudAudio -o dist/soundcloud-audio.js -v -d",
-    "build": "browserify . -s SoundCloudAudio | uglifyjs -cm > dist/soundcloud-audio.min.js",
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
     "test": "./node_modules/karma/bin/karma start --single-run --browsers Chrome",
     "test:watch": "./node_modules/karma/bin/karma start --auto-watch --browsers Chrome"
   },
@@ -40,6 +41,7 @@
   "devDependencies": {
     "browserify": "^16.1.0",
     "chai": "^4.1.2",
+    "dotenv-webpack": "^8.1.0",
     "husky": "^1.2.0",
     "jasmine-core": "^3.1.0",
     "karma": "^2.0.0",
@@ -50,7 +52,8 @@
     "prettier": "^1.15.2",
     "pretty-quick": "^1.8.0",
     "uglify-js": "^3.3.12",
-    "watchify": "^3.10.0"
-  },
-  "dependencies": {}
+    "watchify": "^3.10.0",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4"
+  }
 }
