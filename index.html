@@ -108,22 +108,27 @@
           var xhr = new XMLHttpRequest();
           xhr.open('GET', url);
           
+          console.log('Using token:', currentToken);
           xhr.setRequestHeader('Authorization', 'OAuth ' + currentToken);
           
           xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
+              console.log('Response status:', xhr.status);
+              
               if (xhr.status === 401) {
-                // Token expired, refresh and retry
+                console.log('Token expired, refreshing...');
                 refreshToken().then(newToken => {
                   currentToken = newToken;
-                  // Retry the original request
+                  console.log('Got new token, retrying request');
                   player._json(url, callback);
                 });
               } else if (xhr.status === 200) {
                 try {
-                  callback(JSON.parse(xhr.responseText));
+                  const data = JSON.parse(xhr.responseText);
+                  console.log('Successfully loaded playlist:', data.title);
+                  callback(data);
                 } catch (err) {
-                  console.error('Parse error:', err);
+                  console.error('Parse error:', err, xhr.responseText);
                 }
               } else {
                 console.error('Request failed:', xhr.status, xhr.responseText);
@@ -145,20 +150,27 @@
             // Create playlists container
             const playlistsContainer = document.createElement('div');
             playlistsContainer.className = 'playlists-container';
-            $view.innerHTML = ''; // Clear any existing content
+            $view.innerHTML = '';
             $view.appendChild(playlistsContainer);
             
-            // Setup grid view toggle
+            // Setup toggles and handlers
             setupGridView(playlistsContainer);
-            
-            // Setup scroll handler
             setupScrollHandler(playlistsContainer);
             
             // Load playlists from JSON file
             const response = await fetch('./playlists.json');
             const data = await response.json();
             
-            // Create placeholder divs for each playlist
+            // Configure chunking
+            const CHUNK_SIZE = 5;
+            const chunks = [];
+            
+            // Split playlists into chunks
+            for (let i = 0; i < data.playlists.length; i += CHUNK_SIZE) {
+              chunks.push(data.playlists.slice(i, i + CHUNK_SIZE));
+            }
+            
+            // Create all placeholder divs upfront
             const playlistDivs = data.playlists.map((_, index) => {
               const div = document.createElement('div');
               div.className = 'playlist';
@@ -167,37 +179,61 @@
                   <div class="skeleton-loader"></div>
                 </div>
               `;
+              playlistsContainer.appendChild(div);
               return div;
             });
             
-            // Add all placeholder divs to the container
-            playlistDivs.forEach(div => playlistsContainer.appendChild(div));
-            
-            // Load each playlist
-            data.playlists.forEach((playlistUrl, index) => {
-              try {
-                player.resolve(playlistUrl, function(playlist) {
-                  // Update the corresponding placeholder div
-                  playlistDivs[index].innerHTML = `
-                    <div class="playlist-card">
-                      <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
-                        <div class="playlist-artwork">
-                          <img src="${playlist.artwork_url ? playlist.artwork_url.replace('large', 't500x500') : 'https://placeholder.com/500x500'}" alt="${playlist.title}">
+            // Load chunks sequentially
+            for (let i = 0; i < chunks.length; i++) {
+              const chunk = chunks[i];
+              console.log(`Loading chunk ${i + 1} of ${chunks.length}`);
+              
+              // Load each playlist in the chunk
+              await Promise.all(chunk.map((playlistUrl, chunkIndex) => {
+                const globalIndex = i * CHUNK_SIZE + chunkIndex;
+                return new Promise((resolve) => {
+                  try {
+                    player.resolve(playlistUrl, function(playlist) {
+                      const playlistDiv = playlistDivs[globalIndex];
+                      if (!playlistDiv || !playlistDiv.isConnected) {
+                        console.error('Playlist div not found or disconnected:', globalIndex);
+                        resolve();
+                        return;
+                      }
+                      
+                      const imageUrl = playlist.artwork_url ? 
+                        playlist.artwork_url.replace('large', 't500x500') : 
+                        'https://placeholder.com/500x500';
+                      
+                      playlistDiv.innerHTML = `
+                        <div class="playlist-card">
+                          <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
+                            <div class="playlist-artwork">
+                              <img src="${imageUrl}" alt="${playlist.title}">
+                            </div>
+                            <div class="playlist-details">
+                              <h1 class="playlist-title">${playlist.title}</h1>
+                              <div class="playlist-info">by ${playlist.user.username}</div>
+                              <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
+                            </div>
+                          </a>
                         </div>
-                        <div class="playlist-details">
-                          <h1 class="playlist-title">${playlist.title}</h1>
-                          <div class="playlist-info">by ${playlist.user.username}</div>
-                          <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
-                        </div>
-                      </a>
-                    </div>
-                  `;
+                      `;
+                      resolve();
+                    });
+                  } catch (e) {
+                    console.error('Error loading playlist:', playlistUrl, e);
+                    resolve();
+                  }
                 });
-              } catch (e) {
-                console.error('Error loading playlist:', playlistUrl, e);
-                playlistDivs[index].innerHTML = 'Error loading playlist';
+              }));
+              
+              // Add a small delay between chunks to prevent overwhelming the browser
+              if (i < chunks.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
               }
-            });
+            }
+            
           } catch (e) {
             console.error('Error loading playlists file:', e);
             $view.innerHTML = 'Error loading playlists';

@@ -224,7 +224,7 @@ body.dark-mode .grid-view .playlist {
   grid-auto-rows: 500px;
   gap: 20px;
   padding: 40px;
-  padding-bottom: 100px;
+  padding-bottom: 200px;
   margin-top: 300px;
   width: calc(100% - 80px); /* Account for padding */
   max-width: 100%;
