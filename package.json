@@ -7,9 +7,9 @@
     "example": "example"
   },
   "scripts": {
-    "start": "watchify . -s SoundCloudAudio -o dist/soundcloud-audio.js -v -d",
+    "start": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "dev": "webpack --mode development --watch",
+    "dev": "webpack serve --mode development --open",
     "test": "./node_modules/karma/bin/karma start --single-run --browsers Chrome",
     "test:watch": "./node_modules/karma/bin/karma start --auto-watch --browsers Chrome"
   },
@@ -54,6 +54,7 @@
     "uglify-js": "^3.3.12",
     "watchify": "^3.10.0",
     "webpack": "^5.97.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.0"
   }
 }
