@@ -62,8 +62,9 @@ body:has(.grid-view) {
   position: relative;
   z-index: 1;
   left: 340px;
-  border-left: 10px solid #fff;
-  border-right: 10px solid #fff;
+  margin: 0 10px;
+  /* border-left: 10px solid #fff;
+  border-right: 10px solid #fff; */
 }
 
 .playlist-card {
@@ -150,7 +151,7 @@ body:has(.grid-view) {
   position: absolute;
   left: 40px;
   top: calc(50vh - var(--text-container-height) / 2);
-  width: 400px;
+  /* width: 400px; */
   height: var(--text-container-height);
   z-index: 0;
   color: #333;
@@ -158,6 +159,8 @@ body:has(.grid-view) {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .text-container h1 {
@@ -219,10 +222,10 @@ body.dark-mode .toggle-btn:hover {
   background: #333;
 }
 
-body.dark-mode .playlist {
+/* body.dark-mode .playlist {
   border-left: 10px solid #121212;
   border-right: 10px solid #121212;
-}
+} */
 
 body.dark-mode .grid-view .playlist {
   border: none;
@@ -254,6 +257,7 @@ body.dark-mode .grid-view .playlist {
   max-height: unset;
   left: 0;
   border: none;
+  margin: 0;
 }
 
 /* Also update body styles for grid view */

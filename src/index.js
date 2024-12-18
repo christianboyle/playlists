@@ -257,4 +257,58 @@ const config = {
 
   console.log('Current NODE_ENV:', process.env.NODE_ENV);
 
+  document.addEventListener('DOMContentLoaded', () => {
+    // ... existing initialization code ...
+
+    createTextContainerObserver();
+  });
+
+  function createTextContainerObserver() {
+    const listViewOptions = {
+      root: null,
+      threshold: [0.1, 0.9],
+      rootMargin: '0px'
+    };
+
+    const gridViewOptions = {
+      root: null,
+      threshold: [0.1, 0.9],
+      rootMargin: '-270px 0px -20px 0px'  // Offset by text container height + extra for gaps
+    };
+
+    const listViewObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const textContainer = document.querySelector('.text-container');
+        const shouldHide = entry.intersectionRatio < 0.1;
+        textContainer.style.opacity = shouldHide ? '0' : '1';
+        textContainer.style.pointerEvents = shouldHide ? 'none' : 'auto';
+      });
+    }, listViewOptions);
+
+    const gridViewObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const textContainer = document.querySelector('.text-container');
+        const shouldHide = entry.intersectionRatio < 0.1;
+        textContainer.style.opacity = shouldHide ? '0' : '1';
+        textContainer.style.pointerEvents = shouldHide ? 'none' : 'auto';
+      });
+    }, gridViewOptions);
+
+    const checkForPlaylist = setInterval(() => {
+      const firstPlaylist = document.querySelector('.playlist');
+      const textContainer = document.querySelector('.text-container');
+      const isGridView = document.querySelector('.playlists-container.grid-view');
+      
+      if (firstPlaylist && textContainer) {
+        clearInterval(checkForPlaylist);
+        
+        if (isGridView) {
+          gridViewObserver.observe(firstPlaylist);
+        } else {
+          listViewObserver.observe(firstPlaylist);
+        }
+      }
+    }, 100);
+  }
+
 })(this); 
