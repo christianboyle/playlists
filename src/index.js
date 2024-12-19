@@ -104,6 +104,51 @@ const config = {
     return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
   }
 
+  function setupTextVisibility(container) {
+    const textContainer = document.querySelector('.text-container');
+
+    function updateTextVisibility() {
+      const firstPlaylist = container.querySelector('.playlist');
+      const isGridView = container.classList.contains('grid-view');
+
+      if (firstPlaylist && textContainer) {
+        const playlistRect = firstPlaylist.getBoundingClientRect();
+        const textRect = textContainer.getBoundingClientRect();
+
+        if (isGridView) {
+          const isHidden = playlistRect.top <= textRect.bottom;
+          textContainer.style.opacity = isHidden ? '0' : '1';
+          textContainer.style.pointerEvents = isHidden ? 'none' : 'auto';
+        } else {
+          const isHidden = playlistRect.left <= textRect.right;
+          textContainer.style.opacity = isHidden ? '0' : '1';
+          textContainer.style.pointerEvents = isHidden ? 'none' : 'auto';
+        }
+      }
+    }
+
+    // List view scroll
+    container.addEventListener('scroll', updateTextVisibility);
+
+    // Grid view scroll
+    document.body.addEventListener('wheel', (e) => {
+      const isGridView = container.classList.contains('grid-view');
+      if (isGridView) {
+        setTimeout(() => {
+          updateTextVisibility();
+        }, 50);
+      }
+    });
+
+    // Check visibility when view mode changes
+    document.getElementById('viewToggle').addEventListener('click', () => {
+      setTimeout(updateTextVisibility, 50);
+    });
+
+    // Initial check
+    updateTextVisibility();
+  }
+
   async function loadPlaylists() {
     try {
       const playlistsContainer = document.createElement('div');
@@ -113,6 +158,7 @@ const config = {
       
       setupGridView(playlistsContainer);
       setupScrollHandler(playlistsContainer);
+      setupTextVisibility(playlistsContainer);
       
       const response = await fetch('./playlists.json');
       const data = await response.json();
@@ -187,9 +233,9 @@ const config = {
   }
 
   function setupScrollHandler(container) {
+    // For list view
     container.addEventListener('wheel', (e) => {
       const isGridView = container.classList.contains('grid-view');
-      
       if (!isGridView) {
         e.preventDefault();
         const scrollAmount = e.deltaY * 14;
@@ -203,6 +249,22 @@ const config = {
         });
       }
     }, { passive: false });
+
+    // For grid view
+    document.body.addEventListener('wheel', (e) => {
+      const isGridView = container.classList.contains('grid-view');
+      if (isGridView) {
+        const scrollAmount = e.deltaY * 3;  // Reduced multiplier for smoother vertical scroll
+        const currentScroll = window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+        
+        window.scrollTo({
+          top: newScrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
   }
 
   function setupDarkMode() {
@@ -256,59 +318,5 @@ const config = {
   setupDarkMode();
 
   console.log('Current NODE_ENV:', process.env.NODE_ENV);
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // ... existing initialization code ...
-
-    createTextContainerObserver();
-  });
-
-  function createTextContainerObserver() {
-    const listViewOptions = {
-      root: null,
-      threshold: [0.1, 0.9],
-      rootMargin: '0px'
-    };
-
-    const gridViewOptions = {
-      root: null,
-      threshold: [0.1, 0.9],
-      rootMargin: '-270px 0px -20px 0px'  // Offset by text container height + extra for gaps
-    };
-
-    const listViewObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const textContainer = document.querySelector('.text-container');
-        const shouldHide = entry.intersectionRatio < 0.1;
-        textContainer.style.opacity = shouldHide ? '0' : '1';
-        textContainer.style.pointerEvents = shouldHide ? 'none' : 'auto';
-      });
-    }, listViewOptions);
-
-    const gridViewObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const textContainer = document.querySelector('.text-container');
-        const shouldHide = entry.intersectionRatio < 0.1;
-        textContainer.style.opacity = shouldHide ? '0' : '1';
-        textContainer.style.pointerEvents = shouldHide ? 'none' : 'auto';
-      });
-    }, gridViewOptions);
-
-    const checkForPlaylist = setInterval(() => {
-      const firstPlaylist = document.querySelector('.playlist');
-      const textContainer = document.querySelector('.text-container');
-      const isGridView = document.querySelector('.playlists-container.grid-view');
-      
-      if (firstPlaylist && textContainer) {
-        clearInterval(checkForPlaylist);
-        
-        if (isGridView) {
-          gridViewObserver.observe(firstPlaylist);
-        } else {
-          listViewObserver.observe(firstPlaylist);
-        }
-      }
-    }, 100);
-  }
 
 })(this); 

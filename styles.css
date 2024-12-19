@@ -14,7 +14,7 @@ html, body {
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   overflow: hidden;
   background-color: #fff;
@@ -238,12 +238,11 @@ body.dark-mode .grid-view .playlist {
   grid-auto-rows: 500px;
   gap: 20px;
   padding: 40px;
-  padding-bottom: 200px;
   margin-top: 300px;
   width: calc(100% - 80px); /* Account for padding */
   max-width: 100%;
   height: auto;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
   align-items: start;
