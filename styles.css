@@ -150,7 +150,6 @@ body:has(.grid-view) {
 .text-container {
   position: absolute;
   left: 40px;
-  top: calc(50vh - var(--text-container-height) / 2);
   /* width: 400px; */
   height: var(--text-container-height);
   z-index: 0;
