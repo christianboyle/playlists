@@ -1,6 +1,6 @@
 const config = {
-  clientId: process.env.SOUNDCLOUD_CLIENT_ID,
-  clientSecret: process.env.SOUNDCLOUD_CLIENT_SECRET
+  clientId: window.APP_CONFIG.clientId,
+  clientSecret: window.APP_CONFIG.clientSecret
 };
 
 (function(global) {
@@ -53,6 +53,8 @@ const config = {
         body: `grant_type=client_credentials&client_id=${config.clientId}&client_secret=${config.clientSecret}`
       });
 
+      const data = await response.json();
+
       if (response.status === 429) {
         if (retryCount < maxRetries) {
           return refreshToken(retryCount + 1);
@@ -61,7 +63,6 @@ const config = {
         }
       }
 
-      const data = await response.json();
       if (data.access_token) {
         storeToken(data.access_token, data.expires_in || 3600);
         return data.access_token;
@@ -69,6 +70,7 @@ const config = {
         throw new Error('Invalid token response');
       }
     } catch (error) {
+      console.error('Token refresh error:', error);
       throw error;
     }
   }
@@ -334,7 +336,5 @@ const config = {
   });
 
   setupDarkMode();
-
-  console.log('Current NODE_ENV:', process.env.NODE_ENV);
 
 })(this); 

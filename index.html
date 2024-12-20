@@ -23,7 +23,13 @@
       <div class="playlists-container" id="playlist"></div>
     </div>
 
+    <script>
+      window.APP_CONFIG = {
+        clientId: '${SOUNDCLOUD_CLIENT_ID}',
+        clientSecret: '${SOUNDCLOUD_CLIENT_SECRET}'
+      };
+    </script>
     <script src="./soundcloud-audio.js"></script>
-    <script src="/bundle.js"></script>
+    <script src="/dist/bundle.js"></script>
   </body>
 </html> 
