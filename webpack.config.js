@@ -14,7 +14,10 @@ module.exports = {
     },
     hot: true,
     open: true,
-    port: 8080
+    port: 8080,
+    host: '0.0.0.0',
+    allowedHosts: 'all',
+    historyApiFallback: true
   },
   plugins: [
     new Dotenv()
