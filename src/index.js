@@ -104,51 +104,6 @@ const config = {
     return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
   }
 
-  function setupTextVisibility(container) {
-    const textContainer = document.querySelector('.text-container');
-
-    function updateTextVisibility() {
-      const firstPlaylist = container.querySelector('.playlist');
-      const isGridView = container.classList.contains('grid-view');
-
-      if (firstPlaylist && textContainer) {
-        const playlistRect = firstPlaylist.getBoundingClientRect();
-        const textRect = textContainer.getBoundingClientRect();
-
-        if (isGridView) {
-          const isHidden = playlistRect.top <= textRect.bottom;
-          textContainer.style.opacity = isHidden ? '0' : '1';
-          textContainer.style.pointerEvents = isHidden ? 'none' : 'auto';
-        } else {
-          const isHidden = playlistRect.left <= textRect.right;
-          textContainer.style.opacity = isHidden ? '0' : '1';
-          textContainer.style.pointerEvents = isHidden ? 'none' : 'auto';
-        }
-      }
-    }
-
-    // List view scroll
-    container.addEventListener('scroll', updateTextVisibility);
-
-    // Grid view scroll
-    document.body.addEventListener('wheel', (e) => {
-      const isGridView = container.classList.contains('grid-view');
-      if (isGridView) {
-        setTimeout(() => {
-          updateTextVisibility();
-        }, 50);
-      }
-    });
-
-    // Check visibility when view mode changes
-    document.getElementById('viewToggle').addEventListener('click', () => {
-      setTimeout(updateTextVisibility, 50);
-    });
-
-    // Initial check
-    updateTextVisibility();
-  }
-
   async function loadPlaylists() {
     try {
       const playlistsContainer = document.createElement('div');
@@ -275,16 +230,18 @@ const config = {
     
     if (savedPreference === null && systemPrefersDark) {
       document.body.classList.add('dark-mode');
-      darkModeToggle.innerHTML = '☀️ Light Mode';
+      darkModeToggle.innerHTML = '☀️';
     } else if (savedPreference === 'true') {
       document.body.classList.add('dark-mode');
-      darkModeToggle.innerHTML = '☀️ Light Mode';
+      darkModeToggle.innerHTML = '☀️';
+    } else {
+      darkModeToggle.innerHTML = '🌙';
     }
     
     darkModeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
       const isDarkMode = document.body.classList.contains('dark-mode');
-      darkModeToggle.innerHTML = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+      darkModeToggle.innerHTML = isDarkMode ? '☀️' : '🌙';
       
       localStorage.setItem('darkMode', isDarkMode);
     });
@@ -307,7 +264,7 @@ const config = {
       
       // Toggle the class after resetting scroll
       playlistsContainer.classList.toggle('grid-view');
-      viewToggle.innerHTML = isGridView ? '📜 List View' : '📱 Grid View';
+      viewToggle.innerHTML = isGridView ? '📜' : '📱';
       
       localStorage.setItem('gridView', isGridView);
     });
@@ -322,8 +279,50 @@ const config = {
       
       // Then add the grid view class
       playlistsContainer.classList.add('grid-view');
-      viewToggle.innerHTML = '📜 List View';
+      viewToggle.innerHTML = '📜';
+    } else {
+      viewToggle.innerHTML = '📱';
     }
+  }
+
+  function setupTextVisibility(playlistsContainer) {
+    const textContainer = document.querySelector('.text-container');
+    
+    function updateTextVisibility() {
+      const firstPlaylist = playlistsContainer.querySelector('.playlist');
+      if (!firstPlaylist || !textContainer) return;
+      
+      const textRect = textContainer.getBoundingClientRect();
+      const playlistRect = firstPlaylist.getBoundingClientRect();
+      const isGridView = playlistsContainer.classList.contains('grid-view');
+      
+      if (isGridView) {
+        // Hide text when first playlist moves above text container's bottom edge
+        const isHidden = playlistRect.top < textRect.bottom;
+        textContainer.style.opacity = isHidden ? '0' : '1';
+      } else {
+        const isHidden = textRect.right > playlistRect.left;
+        textContainer.style.opacity = isHidden ? '0' : '1';
+      }
+    }
+    
+    // For list view horizontal scrolling
+    playlistsContainer.addEventListener('scroll', () => {
+      requestAnimationFrame(updateTextVisibility);
+    });
+    
+    // For grid view vertical scrolling
+    document.body.addEventListener('scroll', () => {
+      requestAnimationFrame(updateTextVisibility);
+    });
+    
+    // Update on view mode change
+    document.getElementById('viewToggle').addEventListener('click', () => {
+      setTimeout(updateTextVisibility, 100);
+    });
+    
+    // Initial check
+    setTimeout(updateTextVisibility, 100);
   }
 
   // Initialize everything
