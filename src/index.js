@@ -294,14 +294,33 @@ const config = {
     const viewToggle = document.getElementById('viewToggle');
     
     viewToggle.addEventListener('click', () => {
+      const isGridView = !playlistsContainer.classList.contains('grid-view');
+      
+      // Reset all scroll positions before toggling the class
+      if (isGridView) {
+        // Reset all possible scroll positions
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTo(0, 0);
+        document.body.scrollTo(0, 0);
+        playlistsContainer.scrollTo(0, 0);
+      }
+      
+      // Toggle the class after resetting scroll
       playlistsContainer.classList.toggle('grid-view');
-      const isGridView = playlistsContainer.classList.contains('grid-view');
       viewToggle.innerHTML = isGridView ? '📜 List View' : '📱 Grid View';
       
       localStorage.setItem('gridView', isGridView);
     });
     
+    // Handle initial load
     if (localStorage.getItem('gridView') === 'true') {
+      // Reset all scroll positions first
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTo(0, 0);
+      document.body.scrollTo(0, 0);
+      playlistsContainer.scrollTo(0, 0);
+      
+      // Then add the grid view class
       playlistsContainer.classList.add('grid-view');
       viewToggle.innerHTML = '📜 List View';
     }

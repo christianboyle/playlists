@@ -30,6 +30,17 @@ body:has(.grid-view) {
   align-items: initial;
 }
 
+.container {
+  display: flex;
+  align-items: center;
+  height: 100dvh;
+}
+
+/* Add new rule for container alignment in grid view */
+body:has(.grid-view) .container {
+  align-items: start;
+}
+
 .playlists-container {
   display: flex;
   padding: 0;
@@ -133,9 +144,6 @@ body:has(.grid-view) {
 
   .text-container {
     left: 20px;
-    width: calc(100% - 40px);
-    top: 20px;
-    height: auto;
   }
 
   .text-container h1 {
