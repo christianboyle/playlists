@@ -22,11 +22,12 @@ Prereqs:
 Notes
 ========
 
-1. The refresh token is cached and rotated as-needed to avoid rate-limiting
-2. The .env values are injected at runtime, when the container starts, to avoid exposing in `bundle.js`
+- The SoundCloud API refresh token is cached and rotated as-needed to avoid rate-limiting
+- The .env values are injected at runtime, when the container starts, to avoid exposing in `bundle.js`
 
 Development
 ========
 
-dev: `npm run dev`
-prod: `npm run build`
+Dev: `npm run dev`
+
+Prod: `npm run build`
