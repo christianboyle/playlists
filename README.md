@@ -7,7 +7,16 @@ Then I saw https://playlists.design and thought it was pretty cool, with the exc
  - They use Spotify 🤮
  - My desktop sounds like it's about to achieve liftoff when you start scrolling 🚁
 
-Install
+Generate `playlists.json`
+========
+
+1. update the username you want to get [here](https://github.com/christianboyle/playlists/blob/main/scrape-playlists.py#L16)
+2. `pip install -r requirements.txt`
+3. `python scrape-playlists.py`
+4. output file is `soundcloud_playlists.json`
+5. modify as needed and save as `playlists.json`
+
+Install and Build
 ========
 
 Prereqs:
@@ -18,6 +27,8 @@ Prereqs:
 2. `mv .env.example .env`
 3. fill in `.env` with `Client ID` and `Client Secret`
 4. `docker-compose up --build`
+5. should see `app-1  |  INFO  Accepting connections at http://localhost:8087`
+5. when done `docker-compose down`
 
 Notes
 ========
