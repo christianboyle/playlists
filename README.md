@@ -4,7 +4,7 @@ Motivation
 I'm a big fan of making [playlists](https://soundcloud.com/saxurn/sets) on SoundCloud and made a bunch this year.
 
 Then I saw https://playlists.design and thought it was pretty cool, with the exception of two things:
- - They use Spotify 🤮
+ - They use [Spotify](https://musictech.com/news/music/spotify-uses-ghost-artists-on-playlists-report-claims/) 🤮
  - My desktop sounds like it's about to achieve liftoff when you start scrolling 🚁
 
 Generate `playlists.json`
@@ -34,7 +34,7 @@ Notes
 ========
 
 - The SoundCloud API refresh token is cached and rotated as-needed to avoid rate-limiting
-- The .env values are injected at runtime, when the container starts, to avoid exposing in `bundle.js`
+- The `.env` values are injected at runtime, when the container starts, to avoid exposing in `bundle.js`
 
 Development
 ========
