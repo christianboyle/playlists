@@ -1,7 +1,7 @@
 Motivation
 ========
 
-I'm a big fan of making [playlists](https://soundcloud.com/saxurn/sets) on SoundCloud and made a bunch this year.
+I'm a big fan of making playlists on SoundCloud and made a bunch this year.
 
 Then I saw https://playlists.design and thought it was pretty cool, with two exceptions:
  - They use [Spotify](https://musictech.com/news/music/spotify-uses-ghost-artists-on-playlists-report-claims/) 🤮
