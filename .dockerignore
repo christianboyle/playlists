@@ -3,4 +3,6 @@ dist
 .env
 .git
 .gitignore
-README.md 
+README.md
+Dockerfile
+docker-compose.yml 

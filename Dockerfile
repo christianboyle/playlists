@@ -21,6 +21,7 @@ COPY index.html ./index.html.template
 COPY styles.css .
 COPY soundcloud-audio.js .
 COPY playlists.json .
+COPY favicon.ico .
 
 # Install dependencies
 RUN npm install -g serve
