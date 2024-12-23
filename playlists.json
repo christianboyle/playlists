@@ -1,5 +1,6 @@
 {
-    "playlists": [
+  "playlists": [
+      "https://soundcloud.com/saxurn/sets/primal-spiral",
       "https://soundcloud.com/saxurn/sets/juggin",
       "https://soundcloud.com/saxurn/sets/santa-pilled-rerock",
       "https://soundcloud.com/saxurn/sets/wave-race",
@@ -50,7 +51,6 @@
       "https://soundcloud.com/saxurn/sets/oh-baby-a-triple-cd2",
       "https://soundcloud.com/saxurn/sets/oh-baby-a-triple-cd1",
       "https://soundcloud.com/saxurn/sets/cmittka-a",
-      "https://soundcloud.com/saxurn/sets/cmittka-b",
-      "https://soundcloud.com/saxurn/sets/delulu"
+      "https://soundcloud.com/saxurn/sets/cmittka-b"
     ]
 }
