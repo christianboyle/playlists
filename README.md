@@ -42,3 +42,8 @@ Development
 Dev: `npm run dev`
 
 Prod: `npm run build`
+
+Credits
+========
+- Generating playlists.json [soundcloud-lib](https://github.com/3jackdaws/soundcloud-lib/)
+- Displaying playlist metadata: [soundcloud-audio.js](https://github.com/voronianski/soundcloud-audio.js/)
