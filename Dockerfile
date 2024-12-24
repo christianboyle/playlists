@@ -17,6 +17,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
+COPY index.js .
 COPY index.html ./index.html.template
 COPY styles.css .
 COPY soundcloud-audio.js .
