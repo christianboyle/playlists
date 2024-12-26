@@ -17,7 +17,7 @@ body {
   min-height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background-color: #fff;
+  background-color: #ccc;
   /* Only apply flex centering when not in grid view */
   display: flex;
   align-items: center;
@@ -185,19 +185,18 @@ body:has(.grid-view) .container {
 }
 
 .controls {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
-  display: flex;
-  gap: 12px;
   z-index: 3;
-  border: none;
+  display: flex;
+  gap: 10px;
 }
 
 .toggle-btn {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 8px;
+  transition: all 0.2s ease-in-out;
+  background: transparent;
+  border: 0.5px solid #999;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
@@ -206,11 +205,15 @@ body:has(.grid-view) .container {
   justify-content: center;
   width: 36px;
   height: 36px;
-  transition: all 0.2s ease;
+  padding: 8px;
+  color: #666;
 }
 
-.toggle-btn:hover {
-  background: #f5f5f5;
+.toggle-btn:hover,
+.toggle-btn:focus {
+  background: transparent;
+  border-color: #666;
+  color: #666;
 }
 
 /* Dark mode styles */
@@ -223,13 +226,17 @@ body.dark-mode .text-container {
 }
 
 body.dark-mode .toggle-btn {
-  background: #2a2a2a;
-  border-color: #333;
-  color: #fff;
+  opacity: 0.3;
+  background: transparent;
+  border-color: #666;
+  color: #999;
 }
 
 body.dark-mode .toggle-btn:hover {
-  background: #333;
+  opacity: 1;
+  background: transparent;
+  border-color: #999;
+  color: #999;
 }
 
 /* body.dark-mode .playlist {

@@ -446,7 +446,7 @@ const config = {
         light.visible = lightsEnabled;
         spheres[i].visible = lightsEnabled;
       });
-      lightsToggle.innerHTML = lightsEnabled ? '✨' : '⚫';
+      lightsToggle.innerHTML = lightsEnabled ? '🫧' : '⚫';
     }
     
     lightsToggle.addEventListener('click', () => {
