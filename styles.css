@@ -73,11 +73,16 @@ body:has(.grid-view) .container {
   max-width: 90vw;
   max-height: 90vw;
   position: relative;
-  z-index: 1;
   left: 340px;
   margin: 0 10px;
-  /* border-left: 10px solid #fff;
-  border-right: 10px solid #fff; */
+  isolation: isolate;
+}
+
+.playlist-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
 }
 
 .playlist-card {
@@ -86,18 +91,33 @@ body:has(.grid-view) .container {
   height: 100%;
   border-radius: 12px;
   overflow: hidden;
-  transition: box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.playlist-card:hover,
-.playlist-card:focus-within {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.playlist-card::after {
+  display: none;
 }
 
 .playlist-link {
   display: block;
   text-decoration: none;
   height: 100%;
+  position: relative;
+  border-radius: 12px;
+}
+
+.playlist-link:focus-visible .playlist-card {
+  transform: scale(1.02);
+  outline: 3px solid #12c2e9;
+  outline-offset: 3px;
+  box-shadow: 0 0 20px rgba(18, 194, 233, 0.3);
+}
+
+@keyframes rotate {
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .playlist-artwork {
@@ -106,6 +126,8 @@ body:has(.grid-view) .container {
   left: 0;
   width: 100%;
   height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .playlist-artwork img {
@@ -188,7 +210,7 @@ body:has(.grid-view) .container {
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 3;
+  z-index: 10;
   display: flex;
   gap: 10px;
 }
@@ -208,20 +230,22 @@ body:has(.grid-view) .container {
   padding: 8px;
   color: #666;
   filter: grayscale(100%) brightness(0.75);
-}
-
-/* Adjust dark mode toggle icon content position */
-#darkModeToggle span {
-  display: inline-block;
-  transform: translateY(-1px);
+  position: relative;
 }
 
 .toggle-btn:hover,
-.toggle-btn:focus {
+.toggle-btn:focus-visible {
   background: transparent;
   border-color: #666;
   color: #666;
   filter: none;
+  outline: none;
+}
+
+@keyframes rotate {
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* Dark mode styles */
@@ -241,7 +265,8 @@ body:has(.grid-view) .container {
   filter: grayscale(100%) brightness(0.4);
 }
 
-:root.dark-mode .toggle-btn:hover {
+:root.dark-mode .toggle-btn:hover,
+:root.dark-mode .toggle-btn:focus-visible {
   opacity: 1;
   background: transparent;
   border-color: #999;
@@ -415,4 +440,38 @@ canvas {
 
 .controls {
   z-index: 3;
+}
+
+.playlist-link:focus {
+  outline: none;
+  position: relative;
+  border: none;
+  z-index: 1;
+  border-radius: 12px;
+}
+
+.playlist-link:focus::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(60deg,
+    #ff0040,  /* red/pink */
+    #0040ff,  /* blue */
+    #80ff80,  /* green */
+    #ffaa00,  /* orange/yellow */
+    #ff0040   /* back to start for smooth transition */
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: animatedgradient 3s ease alternate infinite;
+  background-size: 300% 300%;
+  z-index: 2;
 }
