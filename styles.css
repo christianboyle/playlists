@@ -63,6 +63,9 @@ body:has(.grid-view) .container {
   position: relative;
   z-index: 1;
   border: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .playlists-container::-webkit-scrollbar {
@@ -80,6 +83,7 @@ body:has(.grid-view) .container {
   left: 340px;
   margin: 0 10px;
   isolation: isolate;
+  list-style: none;
 }
 
 .playlist-wrapper {

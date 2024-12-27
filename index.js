@@ -110,7 +110,7 @@ const config = {
 
   async function loadPlaylists() {
     try {
-      const playlistsContainer = document.createElement('div');
+      const playlistsContainer = document.createElement('ul');
       playlistsContainer.className = 'playlists-container';
       $view.innerHTML = '';
       $view.appendChild(playlistsContainer);
@@ -130,15 +130,17 @@ const config = {
       }
       
       const playlistDivs = data.playlists.map((_, index) => {
-        const div = document.createElement('div');
-        div.className = 'playlist';
-        div.innerHTML = `
-          <div class="playlist-card">
-            <div class="skeleton-loader"></div>
-          </div>
+        const li = document.createElement('li');
+        li.className = 'playlist';
+        li.innerHTML = `
+          <article class="playlist-wrapper">
+            <div class="playlist-card">
+              <div class="skeleton-loader"></div>
+            </div>
+          </article>
         `;
-        playlistsContainer.appendChild(div);
-        return div;
+        playlistsContainer.appendChild(li);
+        return li;
       });
       
       for (let i = 0; i < chunks.length; i++) {
@@ -160,18 +162,20 @@ const config = {
                   'https://placeholder.com/500x500';
                 
                 playlistDiv.innerHTML = `
-                  <div class="playlist-card">
-                    <a href="${playlist.permalink_url}" class="playlist-link" target="_blank">
-                      <div class="playlist-artwork">
-                        <img src="${imageUrl}" alt="${playlist.title}">
-                      </div>
-                      <div class="playlist-details">
-                        <h1 class="playlist-title">${playlist.title}</h1>
-                        <div class="playlist-info">by ${playlist.user.username}</div>
-                        <div class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</div>
-                      </div>
-                    </a>
-                  </div>
+                  <article class="playlist-wrapper">
+                    <div class="playlist-card">
+                      <a href="${playlist.permalink_url}" class="playlist-link" target="_blank" aria-labelledby="playlist-title-${globalIndex}">
+                        <div class="playlist-artwork">
+                          <img src="${imageUrl}" alt="${playlist.title}">
+                        </div>
+                        <div class="playlist-details">
+                          <h2 class="playlist-title" id="playlist-title-${globalIndex}">${playlist.title}</h2>
+                          <p class="playlist-info">by ${playlist.user.username}</p>
+                          <p class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</p>
+                        </div>
+                      </a>
+                    </div>
+                  </article>
                 `;
                 resolve();
               });
