@@ -298,14 +298,46 @@ body:has(.playlists-container.grid-view) .text-container.hidden {
   position: relative;
   border: none;
   z-index: 1;
-  border-radius: var(--border-radius);
+  border-radius: 12px;
 }
 
-.playlist-link:focus-visible .playlist-card {
-  transform: scale(1.02);
-  outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
-  box-shadow: var(--shadow-focus);
+.playlist-link:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(60deg,
+    #ff0040,
+    #0040ff,
+    #80ff80,
+    #ffaa00,
+    #ff0040 200% /* Extend gradient to ensure smooth transition */
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: animatedgradient 6s ease infinite; /* Increased duration, removed alternate */
+  background-size: 200% 200%; /* Adjusted for smoother transition */
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes animatedgradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Canvas styles */
@@ -377,4 +409,18 @@ canvas {
     left: var(--spacing-md);
     width: calc(100% - 40px);
   }
+}
+
+/* Controls hover/focus styles */
+.toggle-btn:hover,
+.toggle-btn:focus-visible {
+  opacity: 1;
+  filter: none;
+  border-color: var(--color-focus);
+  color: var(--color-focus);
+  outline: none;
+}
+
+.toggle-btn:focus:not(:focus-visible) {
+  outline: none;
 }
