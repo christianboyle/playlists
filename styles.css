@@ -1,7 +1,36 @@
+/* CSS Variables */
 :root {
-  --text-container-height: 200px; /* Approximate height of text container */
+  --text-container-height: 200px;
+  --playlist-width: 300px;
+  --playlist-height: 500px;
+  --border-radius: 12px;
+  --spacing-sm: 10px;
+  --spacing-md: 20px;
+  --spacing-lg: 40px;
+  --spacing-xl: 60px;
+  
+  /* Colors */
+  --color-background: #ccc;
+  --color-text: #333;
+  --color-text-secondary: rgba(255, 255, 255, 0.8);
+  --color-focus: #12c2e9;
+  --color-border: #999;
+  --color-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Shadows */
+  --shadow-default: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-focus: 0 0 20px rgba(18, 194, 233, 0.3);
 }
 
+/* Dark mode variables */
+:root.dark-mode {
+  --color-background: #000;
+  --color-text: #fff;
+  --color-border: #666;
+  --skeleton-background: #2a2a2a;
+}
+
+/* Base styles */
 html, body {
   height: 100%;
   margin: 0;
@@ -13,26 +42,16 @@ html, body {
 }
 
 body {
-  margin: 0;
   min-height: 100dvh;
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background-color: #ccc;
+  background-color: var(--color-background);
   display: flex;
   align-items: center;
 }
 
-/* Remove flex centering in grid view */
-body:has(.grid-view) {
-  display: block;
-  overflow-x: hidden;
-  overflow-y: auto;
-  align-items: initial;
-  height: auto;
-  min-height: 100dvh;
-}
-
+/* Container styles */
 .container {
   display: flex;
   align-items: center;
@@ -42,14 +61,9 @@ body:has(.grid-view) {
   touch-action: manipulation;
 }
 
-/* Add new rule for container alignment in grid view */
-body:has(.grid-view) .container {
-  align-items: start;
-}
-
+/* Playlists container */
 .playlists-container {
   display: flex;
-  padding: 0;
   width: 100vw;
   max-width: 100vw;
   overflow-x: auto;
@@ -69,19 +83,20 @@ body:has(.grid-view) .container {
 }
 
 .playlists-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
 }
 
+/* Playlist card styles */
 .playlist {
-  flex: 0 0 300px;
-  width: 300px;
-  height: 500px;
-  min-width: 300px;
+  flex: 0 0 var(--playlist-width);
+  width: var(--playlist-width);
+  height: var(--playlist-height);
+  min-width: var(--playlist-width);
   max-width: 90vw;
   max-height: 90vw;
   position: relative;
   left: 340px;
-  margin: 0 10px;
+  margin: 0 var(--spacing-sm);
   isolation: isolate;
   list-style: none;
 }
@@ -90,21 +105,17 @@ body:has(.grid-view) .container {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
 }
 
 .playlist-card {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   overflow: hidden;
   transition: transform 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.playlist-card::after {
-  display: none;
+  box-shadow: var(--shadow-default);
 }
 
 .playlist-link {
@@ -112,29 +123,17 @@ body:has(.grid-view) .container {
   text-decoration: none;
   height: 100%;
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
 }
 
-.playlist-link:focus-visible .playlist-card {
-  transform: scale(1.02);
-  outline: 3px solid #12c2e9;
-  outline-offset: 3px;
-  box-shadow: 0 0 20px rgba(18, 194, 233, 0.3);
-}
-
-@keyframes rotate {
-  100% {
-    background-position: 200% center;
-  }
-}
-
+/* Playlist artwork and details */
 .playlist-artwork {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   overflow: hidden;
 }
 
@@ -150,57 +149,36 @@ body:has(.grid-view) .container {
   left: 0;
   right: 0;
   margin-bottom: -1px;
-  padding: 20px 20px 21px;
+  padding: var(--spacing-md) var(--spacing-md) calc(var(--spacing-md) + 1px);
   background: linear-gradient(
     transparent,
-    rgba(0,0,0,0.8) 70%,
-    rgba(0,0,0,0.8) 100%
+    var(--color-overlay) 70%,
+    var(--color-overlay) 100%
   );
   color: white;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
   transform: translateY(1px);
 }
 
 .playlist-title {
   font-size: 24px;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm);
   color: white;
 }
 
 .playlist-info {
-  color: rgba(255,255,255,0.8);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
-@media (max-width: 600px) {
-  .playlist-details {
-    padding: 15px;
-  }
-  
-  .playlist-title {
-    font-size: 20px;
-  }
-
-  .text-container {
-    left: 20px;
-  }
-
-  .text-container h1 {
-    font-size: 32px;
-  }
-
-  .text-container p {
-    font-size: 16px;
-  }
-}
-
+/* Text container styles */
 .text-container {
   position: absolute;
-  left: 40px;
+  left: var(--spacing-lg);
   height: var(--text-container-height);
   z-index: 0;
-  color: #333;
+  color: var(--color-text);
   border: none;
   display: flex;
   flex-direction: column;
@@ -222,19 +200,20 @@ body:has(.grid-view) .container {
   opacity: 0.8;
 }
 
+/* Controls */
 .controls {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
   z-index: 10;
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .toggle-btn {
   transition: all 0.2s ease-in-out;
   background: transparent;
-  border: 0.5px solid #999;
+  border: 0.5px solid var(--color-border);
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
@@ -249,64 +228,15 @@ body:has(.grid-view) .container {
   position: relative;
 }
 
-.toggle-btn:hover,
-.toggle-btn:focus-visible {
-  background: transparent;
-  border-color: #666;
-  color: #666;
-  filter: none;
-  outline: none;
-}
-
-@keyframes rotate {
-  100% {
-    background-position: 200% center;
-  }
-}
-
-/* Dark mode styles */
-:root.dark-mode body {
-  background-color: #000;
-}
-
-:root.dark-mode .text-container {
-  color: #fff;
-}
-
-:root.dark-mode .toggle-btn {
-  background: transparent;
-  border-color: #666;
-  color: #999;
-  filter: grayscale(100%) brightness(0.4);
-}
-
-:root.dark-mode .toggle-btn:hover,
-:root.dark-mode .toggle-btn:focus-visible {
-  opacity: 1;
-  background: transparent;
-  border-color: #999;
-  color: #999;
-  filter: none;
-}
-
-/* body.dark-mode .playlist {
-  border-left: 10px solid #121212;
-  border-right: 10px solid #121212;
-} */
-
-:root.dark-mode .grid-view .playlist {
-  border: none;
-}
-
-/* Add grid view styles */
+/* Grid view styles */
 .playlists-container.grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  grid-auto-rows: 500px;
-  gap: 20px;
-  padding: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(var(--playlist-width), 1fr));
+  grid-auto-rows: var(--playlist-height);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
   margin-top: 300px;
-  width: calc(100% - 80px); /* Account for padding */
+  width: calc(100% - 80px);
   max-width: 100%;
   height: auto;
   min-height: 100dvh;
@@ -317,7 +247,7 @@ body:has(.grid-view) .container {
 
 .grid-view .playlist {
   width: 100%;
-  height: 500px;
+  height: var(--playlist-height);
   min-width: unset;
   max-width: unset;
   max-height: unset;
@@ -326,78 +256,75 @@ body:has(.grid-view) .container {
   margin: 0;
 }
 
-/* Also update body styles for grid view */
+/* Grid view body modifications */
 body:has(.grid-view) {
   display: block;
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: auto;
+  align-items: initial;
+  height: auto;
+  min-height: 100dvh;
 }
 
-/* Update text container position in grid view */
+body:has(.grid-view) .container {
+  align-items: start;
+}
+
 body:has(.playlists-container.grid-view) .text-container {
   position: fixed;
-  left: 40px;
-  top: 20px;
+  left: var(--spacing-lg);
+  top: var(--spacing-xl);
   transform: none;
 }
 
-/* Add skeleton loader styles */
+body:has(.playlists-container.grid-view) .text-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Skeleton loader */
 .skeleton-loader {
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: #f0f0f0;
-  border-radius: 12px;
+  background-color: var(--skeleton-background, #f0f0f0);
+  border-radius: var(--border-radius);
   overflow: hidden;
 }
 
-.skeleton-loader:after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
-  background-repeat: no-repeat;
-  background-image: 
-    /* Shimmer effect */
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 0.5) 50%,
-      rgba(255, 255, 255, 0) 100%
-    ),
-    /* Gradient overlay for text area */
-    linear-gradient(
-      transparent 70%,
-      rgba(0, 0, 0, 0.8) 100%
-    ),
-    /* Title placeholder */
-    linear-gradient(#aaaaaa 24px, transparent 0),
-    /* Subtitle placeholders */
-    linear-gradient(#aaaaaa 16px, transparent 0),
-    linear-gradient(#aaaaaa 16px, transparent 0);
-  
-  background-size:
-    50% 100%,
-    100% 100%,
-    200px 24px,
-    150px 16px,
-    100px 16px;
-  
-  background-position:
-    -100% 0,
-    0 0,
-    20px calc(100% - 80px),
-    20px calc(100% - 45px),
-    20px calc(100% - 20px);
-  
-  animation: skeleton-animation 2s infinite;
+/* Focus states */
+.playlist-link:focus {
+  outline: none;
+  position: relative;
+  border: none;
+  z-index: 1;
+  border-radius: var(--border-radius);
 }
 
-:root.dark-mode .skeleton-loader {
-  background-color: #2a2a2a;
+.playlist-link:focus-visible .playlist-card {
+  transform: scale(1.02);
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Canvas styles */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  touch-action: none;
+}
+
+/* Animations */
+@keyframes rotate {
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes skeleton-animation {
@@ -411,83 +338,43 @@ body:has(.playlists-container.grid-view) .text-container {
   }
 }
 
-/* Update grid view for mobile */
+/* Media queries */
 @media (max-width: 600px) {
+  .playlist-details {
+    padding: var(--spacing-sm);
+  }
+  
+  .playlist-title {
+    font-size: 20px;
+  }
+
+  .text-container {
+    left: var(--spacing-md);
+  }
+
+  .text-container h1 {
+    font-size: 32px;
+  }
+
+  .text-container p {
+    font-size: 16px;
+  }
+
   .playlists-container.grid-view {
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 400px;
-    gap: 20px;
-    padding: 20px;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
     margin-top: 200px;
     width: calc(100% - 40px);
   }
 
   .grid-view .playlist {
     height: 400px;
-    width: 100%;
-    min-width: unset;
-    max-width: unset;
-    left: 0;
   }
 
   body:has(.playlists-container.grid-view) .text-container {
-    left: 20px;
+    left: var(--spacing-md);
     width: calc(100% - 40px);
   }
-}
-
-/* Add styles for Three.js canvas */
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-  touch-action: none;
-}
-
-/* Ensure content stays above the canvas */
-.container {
-  position: relative;
-  z-index: 1;
-}
-
-.controls {
-  z-index: 3;
-}
-
-.playlist-link:focus {
-  outline: none;
-  position: relative;
-  border: none;
-  z-index: 1;
-  border-radius: 12px;
-}
-
-.playlist-link:focus::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 2px;
-  border-radius: 14px;
-  background: linear-gradient(60deg,
-    #ff0040,  /* red/pink */
-    #0040ff,  /* blue */
-    #80ff80,  /* green */
-    #ffaa00,  /* orange/yellow */
-    #ff0040   /* back to start for smooth transition */
-  );
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: animatedgradient 3s ease alternate infinite;
-  background-size: 300% 300%;
-  z-index: 2;
 }

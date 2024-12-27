@@ -295,7 +295,7 @@ const config = {
     });
     
     // For grid view vertical scrolling
-    document.body.addEventListener('scroll', () => {
+    window.addEventListener('scroll', () => {
       requestAnimationFrame(updateTextVisibility);
     });
     
