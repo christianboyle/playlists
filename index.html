@@ -6,14 +6,37 @@
     <title>SoundCloud Playlist Player</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="styles.css">
+    <script>
+      // Immediately set initial theme to prevent flash
+      (function() {
+        let isDarkMode = localStorage.getItem('darkMode');
+        // Default to dark mode if no preference is stored
+        if (isDarkMode === null) {
+          isDarkMode = true;
+        } else {
+          isDarkMode = isDarkMode === 'true';
+        }
+        // Set both the theme class and initial icon
+        if (isDarkMode) {
+          document.documentElement.classList.add('dark-mode');
+          document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('darkModeToggle').innerHTML = '<span>🌞</span>';
+          });
+        } else {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('darkModeToggle').innerHTML = '<span>🌚</span>';
+          });
+        }
+      })();
+    </script>
   </head>
   <body>
     <div class="controls">
       <button class="toggle-btn" id="viewToggle">
         📱
       </button>
-      <button class="toggle-btn" id="lightsToggle">
-        🫧
+      <button class="toggle-btn" id="darkModeToggle">
+        <span style="opacity: 0">🌞</span>
       </button>
     </div>
     <div class="container">

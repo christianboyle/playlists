@@ -437,8 +437,6 @@ const config = {
       scene.add(light);
     }
 
-    // Setup lights toggle
-    const lightsToggle = document.getElementById('lightsToggle');
     let lightsEnabled = localStorage.getItem('lightsEnabled') !== 'false'; // Default to true
     
     function updateLightsVisibility() {
@@ -446,14 +444,7 @@ const config = {
         light.visible = lightsEnabled;
         spheres[i].visible = lightsEnabled;
       });
-      lightsToggle.innerHTML = lightsEnabled ? '🫧' : '⚫';
     }
-    
-    lightsToggle.addEventListener('click', () => {
-      lightsEnabled = !lightsEnabled;
-      localStorage.setItem('lightsEnabled', lightsEnabled);
-      updateLightsVisibility();
-    });
 
     function animate() {
       requestAnimationFrame(animate);
@@ -519,6 +510,42 @@ const config = {
     updateLightsVisibility();
   }
 
+  function setupThemeToggle() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Get stored preference or default to dark mode
+    let isDarkMode = localStorage.getItem('darkMode');
+    isDarkMode = isDarkMode === null ? true : isDarkMode === 'true';
+    
+    function updateTheme(dark) {
+      if (dark) {
+        document.documentElement.classList.add('dark-mode');
+        darkModeToggle.innerHTML = '<span>🌞</span>';
+      } else {
+        document.documentElement.classList.remove('dark-mode');
+        darkModeToggle.innerHTML = '<span>🌚</span>';
+      }
+      localStorage.setItem('darkMode', dark);
+    }
+    
+    // Set initial theme
+    updateTheme(isDarkMode);
+    
+    // Handle toggle button click
+    darkModeToggle.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      updateTheme(isDarkMode);
+    });
+    
+    // Handle system theme changes
+    prefersDark.addListener((e) => {
+      if (localStorage.getItem('darkMode') === null) {
+        updateTheme(e.matches);
+      }
+    });
+  }
+
   // Initialize everything
   refreshToken().then(token => {
     currentToken = token;
@@ -531,6 +558,7 @@ const config = {
         obs.disconnect();
         const container = document.querySelector('.container');
         setupPointLights(container);
+        setupThemeToggle();
       }
     });
     
@@ -541,22 +569,5 @@ const config = {
   }).catch(() => {
     $view.innerHTML = 'Error loading playlists';
   });
-
-  // Set dark mode based on system preference
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-  
-  function updateTheme(e) {
-    if (e.matches) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  }
-  
-  // Listen for system theme changes
-  prefersDark.addListener(updateTheme);
-  
-  // Set initial theme
-  updateTheme(prefersDark);
 
 })(this); 

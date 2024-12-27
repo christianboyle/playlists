@@ -207,6 +207,13 @@ body:has(.grid-view) .container {
   height: 36px;
   padding: 8px;
   color: #666;
+  filter: grayscale(100%) brightness(0.75);
+}
+
+/* Adjust dark mode toggle icon content position */
+#darkModeToggle span {
+  display: inline-block;
+  transform: translateY(-1px);
 }
 
 .toggle-btn:hover,
@@ -214,29 +221,32 @@ body:has(.grid-view) .container {
   background: transparent;
   border-color: #666;
   color: #666;
+  filter: none;
 }
 
 /* Dark mode styles */
-body.dark-mode {
+:root.dark-mode body {
   background-color: #000;
 }
 
-body.dark-mode .text-container {
+:root.dark-mode .text-container {
   color: #fff;
 }
 
-body.dark-mode .toggle-btn {
+:root.dark-mode .toggle-btn {
   opacity: 0.3;
   background: transparent;
   border-color: #666;
   color: #999;
+  filter: grayscale(100%) brightness(0.4);
 }
 
-body.dark-mode .toggle-btn:hover {
+:root.dark-mode .toggle-btn:hover {
   opacity: 1;
   background: transparent;
   border-color: #999;
   color: #999;
+  filter: none;
 }
 
 /* body.dark-mode .playlist {
@@ -244,7 +254,7 @@ body.dark-mode .toggle-btn:hover {
   border-right: 10px solid #121212;
 } */
 
-body.dark-mode .grid-view .playlist {
+:root.dark-mode .grid-view .playlist {
   border: none;
 }
 
@@ -346,7 +356,7 @@ body:has(.playlists-container.grid-view) .text-container {
   animation: skeleton-animation 2s infinite;
 }
 
-body.dark-mode .skeleton-loader {
+:root.dark-mode .skeleton-loader {
   background-color: #2a2a2a;
 }
 
