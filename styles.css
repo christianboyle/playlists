@@ -9,16 +9,16 @@ html, body {
   display: flex;
   font-family: system-ui, sans-serif;
   font-weight: normal;
-  overflow: hidden;
+  touch-action: manipulation;
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: #ccc;
-  /* Only apply flex centering when not in grid view */
   display: flex;
   align-items: center;
 }
@@ -26,8 +26,11 @@ body {
 /* Remove flex centering in grid view */
 body:has(.grid-view) {
   display: block;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   align-items: initial;
+  height: auto;
+  min-height: 100dvh;
 }
 
 .container {
@@ -36,6 +39,7 @@ body:has(.grid-view) {
   height: 100dvh;
   position: relative;
   z-index: 1;
+  touch-action: manipulation;
 }
 
 /* Add new rule for container alignment in grid view */
@@ -437,6 +441,7 @@ canvas {
   height: 100%;
   pointer-events: none;
   z-index: 2;
+  touch-action: none;
 }
 
 /* Ensure content stays above the canvas */
