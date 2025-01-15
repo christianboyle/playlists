@@ -239,7 +239,6 @@ async function initializeApp() {
   (function(global) {
     'use strict';
 
-    var $view = document.getElementById('playlist');
     var player = new SoundCloudAudio(config.clientId);
 
     player._json = async function(url, callback) {
@@ -321,8 +320,8 @@ async function initializeApp() {
       try {
         const playlistsContainer = document.createElement('ul');
         playlistsContainer.className = 'playlists-container';
-        $view.innerHTML = '';
-        $view.appendChild(playlistsContainer);
+        playlistsContainer.id = 'playlist';
+        document.querySelector('.container').appendChild(playlistsContainer);
         
         setupGridView(playlistsContainer);
         setupScrollHandler(playlistsContainer);
@@ -444,7 +443,10 @@ async function initializeApp() {
         
       } catch (e) {
         console.error('Error loading playlists:', e);
-        $view.innerHTML = 'Error loading playlists';
+        const container = document.querySelector('.container');
+        const errorMessage = document.createElement('div');
+        errorMessage.textContent = 'Error loading playlists';
+        container.appendChild(errorMessage);
       }
     }
 
@@ -561,10 +563,49 @@ async function initializeApp() {
       setTimeout(updateTextVisibility, 100);
     }
 
+    function setupThemeToggle() {
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      // Get stored preference or default to dark mode
+      let isDarkMode = localStorage.getItem('darkMode');
+      isDarkMode = isDarkMode === null ? true : isDarkMode === 'true';
+      
+      function updateTheme(dark) {
+        if (dark) {
+          document.documentElement.classList.add('dark-mode');
+          darkModeToggle.innerHTML = '<span>🌞</span>';
+        } else {
+          document.documentElement.classList.remove('dark-mode');
+          darkModeToggle.innerHTML = '<span>🌚</span>';
+        }
+        localStorage.setItem('darkMode', dark);
+      }
+      
+      // Set initial theme
+      updateTheme(isDarkMode);
+      
+      // Handle toggle button click
+      darkModeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        updateTheme(isDarkMode);
+      });
+      
+      // Handle system theme changes
+      prefersDark.addListener((e) => {
+        if (localStorage.getItem('darkMode') === null) {
+          updateTheme(e.matches);
+        }
+      });
+    }
+
     // Start loading playlists
     loadPlaylists().catch(error => {
       console.error('Failed to load playlists:', error);
-      $view.innerHTML = 'Error loading playlists';
+      const container = document.querySelector('.container');
+      const errorMessage = document.createElement('div');
+      errorMessage.textContent = 'Error loading playlists';
+      container.appendChild(errorMessage);
     });
 
     // Wait for playlists to load before setting up lights
