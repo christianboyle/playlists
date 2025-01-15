@@ -1,313 +1,5 @@
 import * as THREE from 'three';
 
-const config = {
-  clientId: window.APP_CONFIG.clientId,
-  clientSecret: window.APP_CONFIG.clientSecret
-};
-
-(function(global) {
-  'use strict';
-
-  var $view = document.getElementById('playlist');
-  var player = new SoundCloudAudio();
-  var currentToken = null;
-
-  function getStoredToken() {
-    const tokenData = localStorage.getItem('sc_token_data');
-    if (!tokenData) return null;
-    
-    try {
-      const { token, expiresAt } = JSON.parse(tokenData);
-      if (Date.now() >= (expiresAt - 300000)) return null;
-      return token;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function storeToken(token, expiresIn) {
-    const expiresAt = Date.now() + (expiresIn * 1000);
-    localStorage.setItem('sc_token_data', JSON.stringify({
-      token,
-      expiresAt
-    }));
-  }
-
-  async function refreshToken(retryCount = 0) {
-    const storedToken = getStoredToken();
-    if (storedToken) {
-      return storedToken;
-    }
-
-    const maxRetries = 3;
-    const delay = retryCount ? Math.pow(2, retryCount) * 1000 : 0;
-
-    if (delay) {
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
-    try {
-      const response = await fetch('https://api.soundcloud.com/oauth2/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `grant_type=client_credentials&client_id=${config.clientId}&client_secret=${config.clientSecret}`
-      });
-
-      const data = await response.json();
-
-      if (response.status === 429) {
-        if (retryCount < maxRetries) {
-          return refreshToken(retryCount + 1);
-        } else {
-          throw new Error('Max retry attempts reached');
-        }
-      }
-
-      if (data.access_token) {
-        storeToken(data.access_token, data.expires_in || 3600);
-        return data.access_token;
-      } else {
-        throw new Error('Invalid token response');
-      }
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      throw error;
-    }
-  }
-  
-  player._json = function(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.setRequestHeader('Authorization', 'OAuth ' + currentToken);
-    
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 401) {
-          refreshToken().then(newToken => {
-            currentToken = newToken;
-            player._json(url, callback);
-          });
-        } else if (xhr.status === 200) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            callback(data);
-          } catch (err) {
-          }
-        }
-      }
-    };
-
-    xhr.send(null);
-  };
-
-  function formatDuration(ms) {
-    var minutes = Math.floor(ms / 60000);
-    var seconds = ((ms % 60000) / 1000).toFixed(0);
-    return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
-  }
-
-  async function loadPlaylists() {
-    try {
-      const playlistsContainer = document.createElement('ul');
-      playlistsContainer.className = 'playlists-container';
-      $view.innerHTML = '';
-      $view.appendChild(playlistsContainer);
-      
-      setupGridView(playlistsContainer);
-      setupScrollHandler(playlistsContainer);
-      setupTextVisibility(playlistsContainer);
-      
-      const response = await fetch('./playlists.json');
-      const data = await response.json();
-      
-      const CHUNK_SIZE = 5;
-      const chunks = [];
-      
-      for (let i = 0; i < data.playlists.length; i += CHUNK_SIZE) {
-        chunks.push(data.playlists.slice(i, i + CHUNK_SIZE));
-      }
-      
-      const playlistDivs = data.playlists.map((_, index) => {
-        const li = document.createElement('li');
-        li.className = 'playlist';
-        li.innerHTML = `
-          <article class="playlist-wrapper">
-            <div class="playlist-card">
-              <div class="skeleton-loader"></div>
-            </div>
-          </article>
-        `;
-        playlistsContainer.appendChild(li);
-        return li;
-      });
-      
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        
-        await Promise.all(chunk.map((playlistUrl, chunkIndex) => {
-          const globalIndex = i * CHUNK_SIZE + chunkIndex;
-          return new Promise((resolve) => {
-            try {
-              player.resolve(playlistUrl, function(playlist) {
-                const playlistDiv = playlistDivs[globalIndex];
-                if (!playlistDiv || !playlistDiv.isConnected) {
-                  resolve();
-                  return;
-                }
-                
-                const imageUrl = playlist.artwork_url ? 
-                  playlist.artwork_url.replace('large', 't500x500') : 
-                  'https://placeholder.com/500x500';
-                
-                playlistDiv.innerHTML = `
-                  <article class="playlist-wrapper">
-                    <div class="playlist-card">
-                      <a href="${playlist.permalink_url}" class="playlist-link" target="_blank" aria-labelledby="playlist-title-${globalIndex}">
-                        <div class="playlist-artwork">
-                          <img src="${imageUrl}" alt="${playlist.title}">
-                        </div>
-                        <div class="playlist-details">
-                          <h2 class="playlist-title" id="playlist-title-${globalIndex}">${playlist.title}</h2>
-                          <p class="playlist-info">by ${playlist.user.username}</p>
-                          <p class="playlist-info">${playlist.track_count} tracks · ${formatDuration(playlist.duration)}</p>
-                        </div>
-                      </a>
-                    </div>
-                  </article>
-                `;
-                resolve();
-              });
-            } catch (e) {
-              resolve();
-            }
-          });
-        }));
-        
-        if (i < chunks.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-      
-    } catch (e) {
-      $view.innerHTML = 'Error loading playlists';
-    }
-  }
-
-  function setupScrollHandler(container) {
-    // For list view
-    container.addEventListener('wheel', (e) => {
-      const isGridView = container.classList.contains('grid-view');
-      if (!isGridView) {
-        e.preventDefault();
-        const scrollAmount = e.deltaY * 14;
-        const currentScroll = container.scrollLeft;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
-        
-        container.scrollTo({
-          left: newScrollPosition,
-          behavior: 'smooth'
-        });
-      }
-    }, { passive: false });
-
-    // For grid view
-    document.body.addEventListener('wheel', (e) => {
-      const isGridView = container.classList.contains('grid-view');
-      if (isGridView) {
-        const scrollAmount = e.deltaY * 3;  // Reduced multiplier for smoother vertical scroll
-        const currentScroll = window.scrollY;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
-        
-        window.scrollTo({
-          top: newScrollPosition,
-          behavior: 'smooth'
-        });
-      }
-    });
-  }
-
-  function setupGridView(playlistsContainer) {
-    const viewToggle = document.getElementById('viewToggle');
-    
-    viewToggle.addEventListener('click', () => {
-      const isGridView = !playlistsContainer.classList.contains('grid-view');
-      
-      // Reset all scroll positions before toggling the class
-      if (isGridView) {
-        // Reset all possible scroll positions
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTo(0, 0);
-        document.body.scrollTo(0, 0);
-        playlistsContainer.scrollTo(0, 0);
-      }
-      
-      // Toggle the class after resetting scroll
-      playlistsContainer.classList.toggle('grid-view');
-      viewToggle.innerHTML = isGridView ? '📜' : '📱';
-      
-      localStorage.setItem('gridView', isGridView);
-    });
-    
-    // Handle initial load
-    if (localStorage.getItem('gridView') === 'true') {
-      // Reset all scroll positions first
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTo(0, 0);
-      document.body.scrollTo(0, 0);
-      playlistsContainer.scrollTo(0, 0);
-      
-      // Then add the grid view class
-      playlistsContainer.classList.add('grid-view');
-      viewToggle.innerHTML = '📜';
-    } else {
-      viewToggle.innerHTML = '📱';
-    }
-  }
-
-  function setupTextVisibility(playlistsContainer) {
-    const textContainer = document.querySelector('.text-container');
-    
-    function updateTextVisibility() {
-      const firstPlaylist = playlistsContainer.querySelector('.playlist');
-      if (!firstPlaylist || !textContainer) return;
-      
-      const textRect = textContainer.getBoundingClientRect();
-      const playlistRect = firstPlaylist.getBoundingClientRect();
-      const isGridView = playlistsContainer.classList.contains('grid-view');
-      
-      if (isGridView) {
-        // Hide text when first playlist moves above text container's bottom edge
-        const isHidden = playlistRect.top < textRect.bottom;
-        textContainer.style.opacity = isHidden ? '0' : '1';
-      } else {
-        const isHidden = textRect.right > playlistRect.left;
-        textContainer.style.opacity = isHidden ? '0' : '1';
-      }
-    }
-    
-    // For list view horizontal scrolling
-    playlistsContainer.addEventListener('scroll', () => {
-      requestAnimationFrame(updateTextVisibility);
-    });
-    
-    // For grid view vertical scrolling
-    window.addEventListener('scroll', () => {
-      requestAnimationFrame(updateTextVisibility);
-    });
-    
-    // Update on view mode change
-    document.getElementById('viewToggle').addEventListener('click', () => {
-      setTimeout(updateTextVisibility, 100);
-    });
-    
-    // Initial check
-    setTimeout(updateTextVisibility, 100);
-  }
-
   // Add color sampling function
   function getAverageColor(image) {
     const canvas = document.createElement('canvas');
@@ -514,47 +206,367 @@ const config = {
     updateLightsVisibility();
   }
 
-  function setupThemeToggle() {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    // Get stored preference or default to dark mode
-    let isDarkMode = localStorage.getItem('darkMode');
-    isDarkMode = isDarkMode === null ? true : isDarkMode === 'true';
-    
-    function updateTheme(dark) {
-      if (dark) {
-        document.documentElement.classList.add('dark-mode');
-        darkModeToggle.innerHTML = '<span>🌞</span>';
-      } else {
-        document.documentElement.classList.remove('dark-mode');
-        darkModeToggle.innerHTML = '<span>🌚</span>';
-      }
-      localStorage.setItem('darkMode', dark);
+// Function to get a fresh client ID from our server
+async function getFreshClientId() {
+  try {
+    const response = await fetch('/api/client-id');
+    const data = await response.json();
+    if (data.clientId) {
+      return data.clientId;
     }
-    
-    // Set initial theme
-    updateTheme(isDarkMode);
-    
-    // Handle toggle button click
-    darkModeToggle.addEventListener('click', () => {
-      isDarkMode = !isDarkMode;
-      updateTheme(isDarkMode);
-    });
-    
-    // Handle system theme changes
-    prefersDark.addListener((e) => {
-      if (localStorage.getItem('darkMode') === null) {
-        updateTheme(e.matches);
-      }
-    });
+    return null;
+  } catch (error) {
+    console.error('Error getting fresh client ID:', error);
+    return null;
+  }
+}
+
+// Initialize the app with a valid client ID
+async function initializeApp() {
+  // Get initial client ID either from config or server
+  let clientId = window.APP_CONFIG?.clientId;
+  if (!clientId) {
+    clientId = await getFreshClientId();
   }
 
-  // Initialize everything
-  refreshToken().then(token => {
-    currentToken = token;
-    loadPlaylists();
-    
+  if (!clientId) {
+    console.error('Failed to get a valid client ID');
+    return;
+  }
+
+  const config = { clientId };
+  
+  (function(global) {
+    'use strict';
+
+    var $view = document.getElementById('playlist');
+    var player = new SoundCloudAudio(config.clientId);
+
+    player._json = async function(url, callback) {
+      // Extract the original SoundCloud URL if this is an API URL
+      let originalUrl = url;
+      if (url.includes('api.soundcloud.com/resolve')) {
+        const urlParam = new URL(url).searchParams.get('url');
+        if (urlParam) {
+          originalUrl = decodeURIComponent(urlParam);
+        }
+      }
+
+      // Convert playlist URL to API V2 format
+      const playlistMatch = originalUrl.match(/soundcloud\.com\/([^\/]+)\/sets\/([^\/]+)/);
+      if (!playlistMatch) {
+        console.error('Invalid playlist URL format:', originalUrl);
+        callback(null);
+        return;
+      }
+
+      // Use our proxy endpoint
+      const apiUrl = `/api/soundcloud/resolve?url=${encodeURIComponent(originalUrl)}&client_id=${config.clientId}`;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', apiUrl);
+      xhr.setRequestHeader('Accept', 'application/json');
+      
+      xhr.onreadystatechange = async function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (!data || (data.kind !== 'playlist' && !data.tracks)) {
+                console.error('Invalid response type:', data?.kind);
+                callback(null);
+                return;
+              }
+              callback(data);
+            } catch (err) {
+              console.error('JSON parse error:', err);
+              callback(null);
+            }
+          } else {
+            if (xhr.responseText) {
+              try {
+                const errorData = JSON.parse(xhr.responseText);
+                console.error('API request failed:', errorData);
+                
+                // If we get a 401 or 403, try getting a fresh client ID
+                if (xhr.status === 401 || xhr.status === 403) {
+                  const newClientId = await getFreshClientId();
+                  if (newClientId) {
+                    config.clientId = newClientId;
+                    player.clientId = newClientId;
+                    console.log('Got fresh client ID, retrying request...');
+                    player._json(url, callback);
+                    return;
+                  }
+                }
+              } catch (e) {
+                console.error('Raw error response:', xhr.responseText);
+              }
+            }
+            callback(null);
+          }
+        }
+      };
+
+      xhr.send(null);
+    };
+
+    function formatDuration(ms) {
+      var minutes = Math.floor(ms / 60000);
+      var seconds = ((ms % 60000) / 1000).toFixed(0);
+      return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+    }
+
+    async function loadPlaylists() {
+      try {
+        const playlistsContainer = document.createElement('ul');
+        playlistsContainer.className = 'playlists-container';
+        $view.innerHTML = '';
+        $view.appendChild(playlistsContainer);
+        
+        setupGridView(playlistsContainer);
+        setupScrollHandler(playlistsContainer);
+        setupTextVisibility(playlistsContainer);
+        
+        const response = await fetch('./playlists.json');
+        const data = await response.json();
+        
+        const CHUNK_SIZE = 5;
+        const chunks = [];
+        
+        for (let i = 0; i < data.playlists.length; i += CHUNK_SIZE) {
+          chunks.push(data.playlists.slice(i, i + CHUNK_SIZE));
+        }
+        
+        const playlistDivs = data.playlists.map((_, index) => {
+          const li = document.createElement('li');
+          li.className = 'playlist';
+          li.innerHTML = `
+            <article class="playlist-wrapper">
+              <div class="playlist-card">
+                <div class="skeleton-loader"></div>
+              </div>
+            </article>
+          `;
+          playlistsContainer.appendChild(li);
+          return li;
+        });
+        
+        let loadedCount = 0;
+        const totalPlaylists = data.playlists.length;
+        
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          
+          await Promise.all(chunk.map((playlistUrl, chunkIndex) => {
+            const globalIndex = i * CHUNK_SIZE + chunkIndex;
+            return new Promise((resolve) => {
+              try {
+                player.resolve(playlistUrl, function(playlist) {
+                  const playlistDiv = playlistDivs[globalIndex];
+                  if (!playlistDiv || !playlistDiv.isConnected) {
+                    resolve();
+                    return;
+                  }
+                  
+                  if (!playlist) {
+                    console.error('Failed to load playlist:', playlistUrl);
+                    playlistDiv.innerHTML = `
+                      <article class="playlist-wrapper">
+                        <div class="playlist-card error">
+                          <div class="error-content">
+                            <p>Failed to load playlist</p>
+                            <a href="${playlistUrl}" target="_blank" class="error-link">View on SoundCloud</a>
+                          </div>
+                        </div>
+                      </article>
+                    `;
+                    resolve();
+                    return;
+                  }
+                  
+                  // Handle V2 API response format
+                  const imageUrl = playlist.artwork_url ? 
+                    playlist.artwork_url.replace('-large', '-t500x500') : 
+                    'https://placeholder.com/500x500';
+                  
+                  const duration = playlist.tracks ? 
+                    playlist.tracks.reduce((total, track) => total + (track.duration || 0), 0) :
+                    playlist.duration;
+                  
+                  const trackCount = playlist.tracks ? playlist.tracks.length : playlist.track_count;
+                  
+                  playlistDiv.innerHTML = `
+                    <article class="playlist-wrapper">
+                      <div class="playlist-card">
+                        <a href="${playlist.permalink_url || playlistUrl}" class="playlist-link" target="_blank" aria-labelledby="playlist-title-${globalIndex}">
+                          <div class="playlist-artwork">
+                            <img src="${imageUrl}" alt="${playlist.title}" onerror="this.src='https://placeholder.com/500x500'">
+                          </div>
+                          <div class="playlist-details">
+                            <h2 class="playlist-title" id="playlist-title-${globalIndex}">${playlist.title}</h2>
+                            <p class="playlist-info">by ${playlist.user ? playlist.user.username : 'Unknown Artist'}</p>
+                            <p class="playlist-info">${trackCount} tracks · ${formatDuration(duration)}</p>
+                          </div>
+                        </a>
+                      </div>
+                    </article>
+                  `;
+                  
+                  loadedCount++;
+                  if (loadedCount === totalPlaylists) {
+                    console.log('All playlists loaded successfully');
+                  }
+                  
+                  resolve();
+                });
+              } catch (e) {
+                console.error('Error loading playlist:', e);
+                const playlistDiv = playlistDivs[globalIndex];
+                if (playlistDiv && playlistDiv.isConnected) {
+                  playlistDiv.innerHTML = `
+                    <article class="playlist-wrapper">
+                      <div class="playlist-card error">
+                        <p>Failed to load playlist</p>
+                      </div>
+                    </article>
+                  `;
+                }
+                resolve();
+              }
+            });
+          }));
+          
+          if (i < chunks.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+        
+      } catch (e) {
+        console.error('Error loading playlists:', e);
+        $view.innerHTML = 'Error loading playlists';
+      }
+    }
+
+    function setupScrollHandler(container) {
+      // For list view
+      container.addEventListener('wheel', (e) => {
+        const isGridView = container.classList.contains('grid-view');
+        if (!isGridView) {
+          e.preventDefault();
+          const scrollAmount = e.deltaY * 14;
+          const currentScroll = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+          
+          container.scrollTo({
+            left: newScrollPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, { passive: false });
+
+      // For grid view
+      document.body.addEventListener('wheel', (e) => {
+        const isGridView = container.classList.contains('grid-view');
+        if (isGridView) {
+          const scrollAmount = e.deltaY * 3;  // Reduced multiplier for smoother vertical scroll
+          const currentScroll = window.scrollY;
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
+          
+          window.scrollTo({
+            top: newScrollPosition,
+            behavior: 'smooth'
+          });
+        }
+      });
+    }
+
+    function setupGridView(playlistsContainer) {
+      const viewToggle = document.getElementById('viewToggle');
+      
+      viewToggle.addEventListener('click', () => {
+        const isGridView = !playlistsContainer.classList.contains('grid-view');
+        
+        // Reset all scroll positions before toggling the class
+        if (isGridView) {
+          // Reset all possible scroll positions
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTo(0, 0);
+          document.body.scrollTo(0, 0);
+          playlistsContainer.scrollTo(0, 0);
+        }
+        
+        // Toggle the class after resetting scroll
+        playlistsContainer.classList.toggle('grid-view');
+        viewToggle.textContent = isGridView ? '📜' : '📱';
+        
+        localStorage.setItem('gridView', isGridView);
+      });
+      
+      // Handle initial load
+      if (localStorage.getItem('gridView') === 'true') {
+        // Reset all scroll positions first
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTo(0, 0);
+        document.body.scrollTo(0, 0);
+        playlistsContainer.scrollTo(0, 0);
+        
+        // Then add the grid view class
+        playlistsContainer.classList.add('grid-view');
+        viewToggle.textContent = '📜';
+      } else {
+        viewToggle.textContent = '📱';
+      }
+    }
+
+    function setupTextVisibility(playlistsContainer) {
+      const textContainer = document.querySelector('.text-container');
+      
+      function updateTextVisibility() {
+        const firstPlaylist = playlistsContainer.querySelector('.playlist');
+        if (!firstPlaylist || !textContainer) return;
+        
+        const textRect = textContainer.getBoundingClientRect();
+        const playlistRect = firstPlaylist.getBoundingClientRect();
+        const isGridView = playlistsContainer.classList.contains('grid-view');
+        
+        if (isGridView) {
+          // Hide text when first playlist moves above text container's bottom edge
+          const isHidden = playlistRect.top < textRect.bottom;
+          textContainer.style.opacity = isHidden ? '0' : '1';
+        } else {
+          const isHidden = textRect.right > playlistRect.left;
+          textContainer.style.opacity = isHidden ? '0' : '1';
+        }
+      }
+      
+      // For list view horizontal scrolling
+      playlistsContainer.addEventListener('scroll', () => {
+        requestAnimationFrame(updateTextVisibility);
+      });
+      
+      // For grid view vertical scrolling
+      window.addEventListener('scroll', () => {
+        requestAnimationFrame(updateTextVisibility);
+      });
+      
+      // Update on view mode change
+      document.getElementById('viewToggle').addEventListener('click', () => {
+        setTimeout(updateTextVisibility, 100);
+      });
+      
+      // Initial check
+      setTimeout(updateTextVisibility, 100);
+    }
+
+    // Start loading playlists
+    loadPlaylists().catch(error => {
+      console.error('Failed to load playlists:', error);
+      $view.innerHTML = 'Error loading playlists';
+    });
+
     // Wait for playlists to load before setting up lights
     const observer = new MutationObserver((mutations, obs) => {
       const playlistImages = document.querySelectorAll('.playlist-artwork img');
@@ -565,13 +577,14 @@ const config = {
         setupThemeToggle();
       }
     });
-    
+
     observer.observe(document.body, {
       childList: true,
       subtree: true
     });
-  }).catch(() => {
-    $view.innerHTML = 'Error loading playlists';
-  });
 
-})(this); 
+  })(this);
+}
+
+// Start the app
+initializeApp(); 

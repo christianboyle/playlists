@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   entry: './index.js',
@@ -8,6 +9,15 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/'
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'window.APP_CONFIG': JSON.stringify({
+        clientId: process.env.SOUNDCLOUD_CLIENT_ID || '',
+        clientSecret: process.env.SOUNDCLOUD_CLIENT_SECRET || ''
+      })
+    })
+  ],
   devServer: {
     static: [
       {

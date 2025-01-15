@@ -424,3 +424,37 @@ canvas {
 .toggle-btn:focus:not(:focus-visible) {
   outline: none;
 }
+
+.playlist-card.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+.error-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.error-content p {
+  margin: 0 0 10px;
+  color: #ff0000;
+}
+
+.error-link {
+  display: inline-block;
+  padding: 5px 10px;
+  color: #666;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.error-link:hover {
+  background: #f5f5f5;
+  color: #333;
+}

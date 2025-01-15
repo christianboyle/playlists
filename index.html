@@ -1,66 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SoundCloud Playlist Player</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundCloud Playlists</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script>
-      // Immediately set initial theme to prevent flash
-      (function() {
-        let isDarkMode = localStorage.getItem('darkMode');
-        // Default to dark mode if no preference is stored
-        if (isDarkMode === null) {
-          isDarkMode = true;
-        } else {
-          isDarkMode = isDarkMode === 'true';
-        }
-        // Set both the theme class and initial icon
-        if (isDarkMode) {
+      // Check for dark mode preference
+      function setInitialTheme() {
+        if (
+          localStorage.theme === 'dark' ||
+          (!('theme' in localStorage) &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
           document.documentElement.classList.add('dark-mode');
-          document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('darkModeToggle').innerHTML = '<span>🌞</span>';
-          });
+          localStorage.theme = 'dark';
         } else {
-          document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('darkModeToggle').innerHTML = '<span>🌚</span>';
-          });
+          document.documentElement.classList.remove('dark-mode');
+          localStorage.theme = 'light';
         }
-      })();
+      }
+      setInitialTheme();
     </script>
   </head>
   <body>
-    <div class="controls">
-      <button class="toggle-btn" id="viewToggle" tabindex="1">
-        📱
-      </button>
-      <button class="toggle-btn" id="darkModeToggle" tabindex="2">
-        <span>🌞</span>
-      </button>
-    </div>
     <div class="container">
       <div class="text-container">
         <h1>2☯24</h1>
         <p>52 weeks, 52 playlists</p>
       </div>
-      <ul class="playlists-container" id="playlist" role="list"></ul>
+      <div id="playlist"></div>
+      <div class="controls">
+        <button class="toggle-btn" id="viewToggle" tabindex="1">📱</button>
+        <button class="toggle-btn" id="darkModeToggle" tabindex="2">
+          <span>🌞</span>
+        </button>
+      </div>
     </div>
-
     <script>
-      window.APP_CONFIG = {
-        clientId: '${SOUNDCLOUD_CLIENT_ID}',
-        clientSecret: '${SOUNDCLOUD_CLIENT_SECRET}'
-      };
-    </script>
-    <script>
-      window.goatcounter = {
-        path: function(p) { return location.host + p }
+      // Dark mode toggle functionality
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const darkModeSpan = darkModeToggle.querySelector('span');
+      
+      function updateDarkModeIcon() {
+        darkModeSpan.textContent = document.documentElement.classList.contains('dark-mode') ? '🌞' : '🌚';
       }
+      
+      darkModeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark-mode');
+        localStorage.theme = document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
+        updateDarkModeIcon();
+      });
+      
+      // Set initial icon
+      updateDarkModeIcon();
     </script>
-    <script data-goatcounter="https://cdb.goatcounter.com/count"
-            async src="//gc.zgo.at/count.js"></script>
-    <script src="./soundcloud-audio.js"></script>
-    <script src="/dist/bundle.js"></script>
+    <script src="dist/config.js"></script>
+    <script src="soundcloud-audio.js"></script>
+    <script src="dist/bundle.js"></script>
   </body>
 </html> 
