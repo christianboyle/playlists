@@ -9,16 +9,14 @@
     <script>
       // Check for dark mode preference
       function setInitialTheme() {
-        if (
-          localStorage.theme === 'dark' ||
-          (!('theme' in localStorage) &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
+        const isDarkMode = localStorage.getItem('darkMode');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Use stored preference if it exists, otherwise use system preference
+        if (isDarkMode === 'true' || (isDarkMode === null && prefersDark)) {
           document.documentElement.classList.add('dark-mode');
-          localStorage.theme = 'dark';
         } else {
           document.documentElement.classList.remove('dark-mode');
-          localStorage.theme = 'light';
         }
       }
       setInitialTheme();
@@ -48,7 +46,7 @@
       
       darkModeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark-mode');
-        localStorage.theme = document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
+        localStorage.setItem('darkMode', document.documentElement.classList.contains('dark-mode'));
         updateDarkModeIcon();
       });
       
