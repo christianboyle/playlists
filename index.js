@@ -535,8 +535,10 @@ async function initializeApp() {
         const isGridView = playlistsContainer.classList.contains('grid-view');
         
         if (isGridView) {
-          // Hide text when first playlist moves above text container's bottom edge
-          const isHidden = playlistRect.top < textRect.bottom;
+          // In grid mode, only hide when the playlist significantly overlaps with text
+          const overlapThreshold = textRect.height * 0.5; // 50% overlap threshold
+          const overlap = Math.min(textRect.bottom - playlistRect.top, textRect.height);
+          const isHidden = overlap > overlapThreshold;
           textContainer.style.opacity = isHidden ? '0' : '1';
         } else {
           const isHidden = textRect.right > playlistRect.left;
