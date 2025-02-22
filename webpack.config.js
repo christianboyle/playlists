@@ -9,7 +9,6 @@ const hasEnvFile = fs.existsSync(path.resolve(__dirname, '.env'));
 // Create plugins array based on environment
 const plugins = [
   new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'window.APP_CONFIG': JSON.stringify({
       clientId: process.env.SOUNDCLOUD_CLIENT_ID || '',
       clientSecret: process.env.SOUNDCLOUD_CLIENT_SECRET || ''
