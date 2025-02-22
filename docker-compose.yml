@@ -3,12 +3,18 @@ services:
     build:
       context: .
       args:
-        - NODE_ENV=production
+        - NODE_ENV=development
         - SOUNDCLOUD_CLIENT_ID=${SOUNDCLOUD_CLIENT_ID}
         - SOUNDCLOUD_CLIENT_SECRET=${SOUNDCLOUD_CLIENT_SECRET}
     ports:
       - "8087:8087"
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - SOUNDCLOUD_CLIENT_ID=${SOUNDCLOUD_CLIENT_ID}
-      - SOUNDCLOUD_CLIENT_SECRET=${SOUNDCLOUD_CLIENT_SECRET} 
+      - SOUNDCLOUD_CLIENT_SECRET=${SOUNDCLOUD_CLIENT_SECRET}
+      - PORT=3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "node server.js & npm run dev" 
