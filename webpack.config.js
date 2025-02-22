@@ -1,6 +1,28 @@
 const path = require('path');
 const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
+const fs = require('fs');
+
+// Determine if .env file exists
+const hasEnvFile = fs.existsSync(path.resolve(__dirname, '.env'));
+
+// Create plugins array based on environment
+const plugins = [
+  new webpack.DefinePlugin({
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'window.APP_CONFIG': JSON.stringify({
+      clientId: process.env.SOUNDCLOUD_CLIENT_ID || '',
+      clientSecret: process.env.SOUNDCLOUD_CLIENT_SECRET || ''
+    })
+  })
+];
+
+// Only add Dotenv plugin if .env file exists
+if (hasEnvFile) {
+  plugins.push(new Dotenv({
+    systemvars: true // Load all system variables as well
+  }));
+}
 
 module.exports = {
   entry: './index.js',
@@ -9,16 +31,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/'
   },
-  plugins: [
-    new Dotenv(),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-      'window.APP_CONFIG': JSON.stringify({
-        clientId: process.env.SOUNDCLOUD_CLIENT_ID || '',
-        clientSecret: process.env.SOUNDCLOUD_CLIENT_SECRET || ''
-      })
-    })
-  ],
+  plugins,
   devServer: {
     static: [
       {
