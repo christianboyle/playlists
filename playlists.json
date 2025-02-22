@@ -1,5 +1,6 @@
 {
-  "playlists": [
+  "years": {
+    "2024": [
       "https://soundcloud.com/saxurn/sets/primal-spiral",
       "https://soundcloud.com/saxurn/sets/juggin",
       "https://soundcloud.com/saxurn/sets/santa-pilled-rerock",
@@ -52,5 +53,21 @@
       "https://soundcloud.com/saxurn/sets/oh-baby-a-triple-cd1",
       "https://soundcloud.com/saxurn/sets/cmittka-a",
       "https://soundcloud.com/saxurn/sets/cmittka-b"
+    ],
+    "2025": [
+      "https://soundcloud.com/saxurn/sets/old-slimeful",
+      "https://soundcloud.com/saxurn/sets/zero-player-game",
+      "https://soundcloud.com/saxurn/sets/blockbussin",
+      "https://soundcloud.com/saxurn/sets/zooted",
+      "https://soundcloud.com/saxurn/sets/cache-lines",
+      "https://soundcloud.com/saxurn/sets/chill",
+      "https://soundcloud.com/saxurn/sets/cop-a-zip",
+      "https://soundcloud.com/saxurn/sets/sim-pin",
+      "https://soundcloud.com/saxurn/sets/poppin-tags",
+      "https://soundcloud.com/saxurn/sets/causal-cones",
+      "https://soundcloud.com/saxurn/sets/phong-daddy",
+      "https://soundcloud.com/saxurn/sets/blobtech",
+      "https://soundcloud.com/saxurn/sets/selectron"
     ]
+  }
 }

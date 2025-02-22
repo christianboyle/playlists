@@ -24,9 +24,12 @@ if (hasEnvFile) {
 }
 
 module.exports = {
-  entry: './index.js',
+  entry: {
+    bundle: './index.js',
+    config: './src/config.js'
+  },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/'
   },

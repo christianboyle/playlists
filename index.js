@@ -316,8 +316,14 @@ async function initializeApp() {
       return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
     }
 
-    async function loadPlaylists() {
+    async function loadPlaylists(year = '2024') {
       try {
+        // Clear existing playlists
+        const existingContainer = document.getElementById('playlist');
+        if (existingContainer) {
+          existingContainer.remove();
+        }
+
         const playlistsContainer = document.createElement('ul');
         playlistsContainer.className = 'playlists-container';
         playlistsContainer.id = 'playlist';
@@ -330,14 +336,35 @@ async function initializeApp() {
         const response = await fetch('./playlists.json');
         const data = await response.json();
         
+        // Get playlists for the selected year
+        const yearPlaylists = data.years[year] || [];
+        
+        // Update playlist count text
+        const countSpan = document.querySelector('.year-title .count');
+        if (!countSpan) {
+          console.error('Count span not found');
+          return;
+        }
+        
+        if (year === '2024') {
+          countSpan.textContent = '52 weeks, 52 playlists';
+        } else {
+          // Calculate current week number for 2025
+          const startOf2025 = new Date('2025-01-01');
+          const now = new Date('2025-02-22'); // Set to current date
+          const msInWeek = 1000 * 60 * 60 * 24 * 7;
+          const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
+          countSpan.textContent = `${currentWeek} weeks, ${yearPlaylists.length} playlists`;
+        }
+        
         const CHUNK_SIZE = 5;
         const chunks = [];
         
-        for (let i = 0; i < data.playlists.length; i += CHUNK_SIZE) {
-          chunks.push(data.playlists.slice(i, i + CHUNK_SIZE));
+        for (let i = 0; i < yearPlaylists.length; i += CHUNK_SIZE) {
+          chunks.push(yearPlaylists.slice(i, i + CHUNK_SIZE));
         }
         
-        const playlistDivs = data.playlists.map((_, index) => {
+        const playlistDivs = yearPlaylists.map((_, index) => {
           const li = document.createElement('li');
           li.className = 'playlist';
           li.innerHTML = `
@@ -352,7 +379,7 @@ async function initializeApp() {
         });
         
         let loadedCount = 0;
-        const totalPlaylists = data.playlists.length;
+        const totalPlaylists = yearPlaylists.length;
         
         for (let i = 0; i < chunks.length; i++) {
           const chunk = chunks[i];
@@ -601,14 +628,54 @@ async function initializeApp() {
       });
     }
 
-    // Start loading playlists
-    loadPlaylists().catch(error => {
-      console.error('Failed to load playlists:', error);
-      const container = document.querySelector('.container');
-      const errorMessage = document.createElement('div');
-      errorMessage.textContent = 'Error loading playlists';
-      container.appendChild(errorMessage);
-    });
+    // Add year selection handling
+    function setupYearSelection() {
+      const yearTitle = document.getElementById('yearTitle');
+      const yearSpan = yearTitle.querySelector('.year');
+      const countSpan = yearTitle.querySelector('.count');
+
+      if (!yearTitle) {
+        console.error('Year title element not found');
+        return;
+      }
+
+      let currentYear = '2025'; // Start with 2025
+
+      // Update title and text when year changes
+      const updateYearDisplay = (selectedYear) => {
+        yearSpan.textContent = `2☯${selectedYear.slice(2)}`;
+        fetch('./playlists.json')
+          .then(response => response.json())
+          .then(data => {
+            const count = data.years[selectedYear].length;
+            if (selectedYear === '2024') {
+              countSpan.textContent = '52 weeks, 52 playlists';
+            } else {
+              // Calculate current week number for 2025
+              const startOf2025 = new Date('2025-01-01');
+              const now = new Date('2025-02-22'); // Set to current date
+              const msInWeek = 1000 * 60 * 60 * 24 * 7;
+              const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
+              countSpan.textContent = `${currentWeek} weeks, ${count} playlists`;
+            }
+          });
+      };
+
+      yearTitle.addEventListener('click', () => {
+        // Toggle between years
+        currentYear = currentYear === '2024' ? '2025' : '2024';
+        updateYearDisplay(currentYear);
+        loadPlaylists(currentYear);
+      });
+
+      // Set initial year display and load playlists
+      updateYearDisplay(currentYear);
+      loadPlaylists(currentYear);
+    }
+
+    // Initialize the app
+    setupThemeToggle();
+    setupYearSelection();
 
     // Wait for playlists to load before setting up lights
     const observer = new MutationObserver((mutations, obs) => {
@@ -617,7 +684,6 @@ async function initializeApp() {
         obs.disconnect();
         const container = document.querySelector('.container');
         setupPointLights(container);
-        setupThemeToggle();
       }
     });
 
@@ -630,4 +696,6 @@ async function initializeApp() {
 }
 
 // Start the app
-initializeApp(); 
+document.addEventListener('DOMContentLoaded', () => {
+  initializeApp();
+}); 

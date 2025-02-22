@@ -177,7 +177,7 @@ body {
   position: absolute;
   left: var(--spacing-lg);
   height: var(--text-container-height);
-  z-index: 0;
+  z-index: 2;
   color: var(--color-text);
   border: none;
   display: flex;
@@ -185,6 +185,79 @@ body {
   justify-content: center;
   transition: opacity 0.3s ease;
   opacity: 1;
+}
+
+.year-title {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s ease;
+  position: relative;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: auto;
+}
+
+.year-title .year {
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.year-title .count {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.year-title:hover {
+  opacity: 0.8;
+}
+
+.year-title:focus {
+  outline: none;
+}
+
+.year-title:hover::before,
+.year-title:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  padding: 2px;
+  border-radius: 12px;
+  background: linear-gradient(60deg,
+    #ff0040,
+    #0040ff,
+    #80ff80,
+    #ffaa00,
+    #ff0040 200%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: animatedgradient 6s ease infinite;
+  background-size: 200% 200%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.year-title:focus:not(:focus-visible)::before {
+  display: none;
 }
 
 .text-container h1 {
