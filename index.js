@@ -351,7 +351,7 @@ async function initializeApp() {
         } else {
           // Calculate current week number for 2025
           const startOf2025 = new Date('2025-01-01');
-          const now = new Date('2025-02-22'); // Set to current date
+          const now = new Date(); // Use current date
           const msInWeek = 1000 * 60 * 60 * 24 * 7;
           const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
           countSpan.textContent = `${currentWeek} weeks, ${yearPlaylists.length} playlists`;
@@ -653,7 +653,7 @@ async function initializeApp() {
             } else {
               // Calculate current week number for 2025
               const startOf2025 = new Date('2025-01-01');
-              const now = new Date('2025-02-22'); // Set to current date
+              const now = new Date(); // Use current date
               const msInWeek = 1000 * 60 * 60 * 24 * 7;
               const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
               countSpan.textContent = `${currentWeek} weeks, ${count} playlists`;
