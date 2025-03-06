@@ -311,8 +311,10 @@ async function initializeApp() {
     };
 
     function formatDuration(ms) {
-      var minutes = Math.floor(ms / 60000);
-      var seconds = ((ms % 60000) / 1000).toFixed(0);
+      // Convert to seconds first
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
       return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
     }
 
@@ -416,9 +418,8 @@ async function initializeApp() {
                     playlist.artwork_url.replace('-large', '-t500x500') : 
                     'https://placeholder.com/500x500';
                   
-                  const duration = playlist.tracks ? 
-                    playlist.tracks.reduce((total, track) => total + (track.duration || 0), 0) :
-                    playlist.duration;
+                  // Use the playlist's total duration instead of summing tracks
+                  const duration = playlist.duration;
                   
                   const trackCount = playlist.tracks ? playlist.tracks.length : playlist.track_count;
                   
