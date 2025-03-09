@@ -443,6 +443,7 @@ async function initializeApp() {
                   loadedCount++;
                   if (loadedCount === totalPlaylists) {
                     console.log('All playlists loaded successfully');
+                    setupTiltEffect(playlistsContainer);
                   }
                   
                   resolve();
@@ -674,6 +675,62 @@ async function initializeApp() {
       loadPlaylists(currentYear);
     }
 
+    function setupTiltEffect(container) {
+      // Only apply effects on desktop
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+      if (!isDesktop) return;
+
+      const cards = container.querySelectorAll('.playlist');
+      
+      cards.forEach(card => {
+        const wrapper = card.querySelector('.playlist-wrapper');
+        let bounds;
+        
+        const rotateToMouse = (e) => {
+          const mouseX = e.clientX;
+          const mouseY = e.clientY;
+          
+          if (!bounds) bounds = wrapper.getBoundingClientRect();
+          
+          const leftX = mouseX - bounds.x;
+          const topY = mouseY - bounds.y;
+          const center = {
+            x: leftX - bounds.width / 2,
+            y: topY - bounds.height / 2
+          }
+          
+          const distance = Math.sqrt(center.x**2 + center.y**2);
+          
+          wrapper.style.transform = `
+            perspective(1000px)
+            scale3d(1.03, 1.03, 1.03)
+            rotate3d(
+              ${center.y / 200},
+              ${-center.x / 200},
+              0,
+              ${Math.log(distance)}deg
+            )
+          `;
+        };
+        
+        const resetStyles = () => {
+          wrapper.style.transform = `
+            perspective(1000px)
+            scale3d(1, 1, 1)
+            rotate3d(0, 0, 0, 0deg)
+          `;
+          bounds = null;
+        };
+        
+        wrapper.addEventListener('mouseenter', () => {
+          bounds = wrapper.getBoundingClientRect();
+        });
+        
+        wrapper.addEventListener('mousemove', rotateToMouse);
+        wrapper.addEventListener('mouseleave', resetStyles);
+      });
+    }
+
     // Initialize the app
     setupThemeToggle();
     setupYearSelection();
@@ -685,6 +742,7 @@ async function initializeApp() {
         obs.disconnect();
         const container = document.querySelector('.container');
         setupPointLights(container);
+        setupTiltEffect(document.getElementById('playlist')); // Add tilt effect after playlists load
       }
     });
 
