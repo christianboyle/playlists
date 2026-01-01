@@ -348,15 +348,23 @@ async function initializeApp() {
           return;
         }
         
-        if (year === '2024') {
+        // Get current year
+        const now = new Date();
+        const currentYearNum = now.getFullYear();
+        const selectedYearNum = parseInt(year);
+        
+        // For completed years (before current year), show 52 weeks
+        if (selectedYearNum < currentYearNum) {
           countSpan.textContent = '52 weeks, 52 playlists';
-        } else {
-          // Calculate current week number for 2025
-          const startOf2025 = new Date('2025-01-01');
-          const now = new Date(); // Use current date
+        } else if (selectedYearNum === currentYearNum) {
+          // For current year, calculate current week number dynamically
+          const startOfYear = new Date(`${year}-01-01`);
           const msInWeek = 1000 * 60 * 60 * 24 * 7;
-          const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
+          const currentWeek = Math.ceil((now - startOfYear) / msInWeek);
           countSpan.textContent = `${currentWeek} weeks, ${yearPlaylists.length} playlists`;
+        } else {
+          // For future years, just show playlist count
+          countSpan.textContent = `${yearPlaylists.length} playlists`;
         }
         
         const CHUNK_SIZE = 5;
@@ -641,38 +649,57 @@ async function initializeApp() {
         return;
       }
 
-      let currentYear = '2025'; // Start with 2025
+      let currentYear = '2026'; // Start with 2026 (current year)
 
-      // Update title and text when year changes
-      const updateYearDisplay = (selectedYear) => {
-        yearSpan.textContent = `2☯${selectedYear.slice(2)}`;
-        fetch('./playlists.json')
-          .then(response => response.json())
-          .then(data => {
-            const count = data.years[selectedYear].length;
-            if (selectedYear === '2024') {
-              countSpan.textContent = '52 weeks, 52 playlists';
-            } else {
-              // Calculate current week number for 2025
-              const startOf2025 = new Date('2025-01-01');
-              const now = new Date(); // Use current date
-              const msInWeek = 1000 * 60 * 60 * 24 * 7;
-              const currentWeek = Math.ceil((now - startOf2025) / msInWeek);
-              countSpan.textContent = `${currentWeek} weeks, ${count} playlists`;
-            }
-          });
+      // Get available years from playlists.json
+      const getAvailableYears = async () => {
+        const response = await fetch('./playlists.json');
+        const data = await response.json();
+        return Object.keys(data.years).sort();
       };
 
-      yearTitle.addEventListener('click', () => {
-        // Toggle between years
-        currentYear = currentYear === '2024' ? '2025' : '2024';
-        updateYearDisplay(currentYear);
+      // Update title and text when year changes
+      const updateYearDisplay = async (selectedYear) => {
+        yearSpan.textContent = `2☯${selectedYear.slice(2)}`;
+        const response = await fetch('./playlists.json');
+        const data = await response.json();
+        const count = data.years[selectedYear].length;
+        
+        // Get current year
+        const now = new Date();
+        const currentYearNum = now.getFullYear();
+        const selectedYearNum = parseInt(selectedYear);
+        
+        // For completed years (before current year), show 52 weeks
+        if (selectedYearNum < currentYearNum) {
+          countSpan.textContent = '52 weeks, 52 playlists';
+        } else if (selectedYearNum === currentYearNum) {
+          // For current year, calculate current week number dynamically
+          const startOfYear = new Date(`${selectedYear}-01-01`);
+          const msInWeek = 1000 * 60 * 60 * 24 * 7;
+          const currentWeek = Math.ceil((now - startOfYear) / msInWeek);
+          countSpan.textContent = `${currentWeek} weeks, ${count} playlists`;
+        } else {
+          // For future years, just show playlist count
+          countSpan.textContent = `${count} playlists`;
+        }
+      };
+
+      yearTitle.addEventListener('click', async () => {
+        // Cycle through available years
+        const availableYears = await getAvailableYears();
+        const currentIndex = availableYears.indexOf(currentYear);
+        const nextIndex = (currentIndex + 1) % availableYears.length;
+        currentYear = availableYears[nextIndex];
+        await updateYearDisplay(currentYear);
         loadPlaylists(currentYear);
       });
 
       // Set initial year display and load playlists
-      updateYearDisplay(currentYear);
-      loadPlaylists(currentYear);
+      (async () => {
+        await updateYearDisplay(currentYear);
+        loadPlaylists(currentYear);
+      })();
     }
 
     function setupTiltEffect(container) {
