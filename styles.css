@@ -116,6 +116,8 @@ body {
   transform-style: preserve-3d;
   transition: transform 0.2s ease-out;
   transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .playlist-card {

@@ -709,38 +709,86 @@ async function initializeApp() {
 
       const cards = container.querySelectorAll('.playlist');
       
+      // Recalculate bounds on scroll/resize
+      const recalculateBounds = () => {
+        cards.forEach(card => {
+          const wrapper = card.querySelector('.playlist-wrapper');
+          if (wrapper && wrapper.dataset.isHovering === 'true') {
+            wrapper.dataset.bounds = JSON.stringify(wrapper.getBoundingClientRect());
+          }
+        });
+      };
+      
+      let rafId = null;
+      window.addEventListener('scroll', recalculateBounds, { passive: true });
+      window.addEventListener('resize', recalculateBounds, { passive: true });
+      
       cards.forEach(card => {
         const wrapper = card.querySelector('.playlist-wrapper');
-        let bounds;
+        if (!wrapper) return;
+        
+        let bounds = null;
+        let isHovering = false;
         
         const rotateToMouse = (e) => {
-          const mouseX = e.clientX;
-          const mouseY = e.clientY;
+          if (!isHovering) return;
           
-          if (!bounds) bounds = wrapper.getBoundingClientRect();
-          
-          const leftX = mouseX - bounds.x;
-          const topY = mouseY - bounds.y;
-          const center = {
-            x: leftX - bounds.width / 2,
-            y: topY - bounds.height / 2
+          // Cancel any pending animation frame
+          if (rafId) {
+            cancelAnimationFrame(rafId);
           }
           
-          const distance = Math.sqrt(center.x**2 + center.y**2);
-          
-          wrapper.style.transform = `
-            perspective(1000px)
-            scale3d(1.03, 1.03, 1.03)
-            rotate3d(
-              ${center.y / 200},
-              ${-center.x / 200},
-              0,
-              ${Math.log(distance)}deg
-            )
-          `;
+          rafId = requestAnimationFrame(() => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            // Recalculate bounds if needed
+            if (!bounds) {
+              bounds = wrapper.getBoundingClientRect();
+            }
+            
+            // Validate bounds
+            if (!bounds || bounds.width === 0 || bounds.height === 0) {
+              return;
+            }
+            
+            const leftX = mouseX - bounds.x;
+            const topY = mouseY - bounds.y;
+            const center = {
+              x: leftX - bounds.width / 2,
+              y: topY - bounds.height / 2
+            };
+            
+            // Calculate distance with minimum value to avoid Math.log issues
+            const distance = Math.max(1, Math.sqrt(center.x**2 + center.y**2));
+            
+            // Clamp rotation values to prevent extreme tilts
+            const maxRotation = 15; // degrees
+            const rotationAmount = Math.min(maxRotation, Math.log(distance) * 2);
+            
+            // Calculate rotation axes with clamping
+            const rotateX = Math.max(-1, Math.min(1, center.y / 200));
+            const rotateY = Math.max(-1, Math.min(1, -center.x / 200));
+            
+            // Only apply transform if values are valid
+            if (isFinite(rotationAmount) && isFinite(rotateX) && isFinite(rotateY)) {
+              wrapper.style.transform = `
+                perspective(1000px)
+                scale3d(1.03, 1.03, 1.03)
+                rotate3d(${rotateX}, ${rotateY}, 0, ${rotationAmount}deg)
+              `;
+            }
+          });
         };
         
         const resetStyles = () => {
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+          
+          isHovering = false;
+          wrapper.dataset.isHovering = 'false';
           wrapper.style.transform = `
             perspective(1000px)
             scale3d(1, 1, 1)
@@ -750,6 +798,8 @@ async function initializeApp() {
         };
         
         wrapper.addEventListener('mouseenter', () => {
+          isHovering = true;
+          wrapper.dataset.isHovering = 'true';
           bounds = wrapper.getBoundingClientRect();
         });
         
