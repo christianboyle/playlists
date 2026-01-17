@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import VanillaTilt from 'vanilla-tilt';
 
   // Add color sampling function
   function getAverageColor(image) {
@@ -707,104 +708,19 @@ async function initializeApp() {
       const isDesktop = window.matchMedia('(min-width: 768px)').matches;
       if (!isDesktop) return;
 
-      const cards = container.querySelectorAll('.playlist');
+      const wrappers = container.querySelectorAll('.playlist-wrapper');
       
-      // Recalculate bounds on scroll/resize
-      const recalculateBounds = () => {
-        cards.forEach(card => {
-          const wrapper = card.querySelector('.playlist-wrapper');
-          if (wrapper && wrapper.dataset.isHovering === 'true') {
-            wrapper.dataset.bounds = JSON.stringify(wrapper.getBoundingClientRect());
-          }
-        });
-      };
-      
-      let rafId = null;
-      window.addEventListener('scroll', recalculateBounds, { passive: true });
-      window.addEventListener('resize', recalculateBounds, { passive: true });
-      
-      cards.forEach(card => {
-        const wrapper = card.querySelector('.playlist-wrapper');
-        if (!wrapper) return;
-        
-        let bounds = null;
-        let isHovering = false;
-        
-        const rotateToMouse = (e) => {
-          if (!isHovering) return;
-          
-          // Cancel any pending animation frame
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-          }
-          
-          rafId = requestAnimationFrame(() => {
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            
-            // Recalculate bounds if needed
-            if (!bounds) {
-              bounds = wrapper.getBoundingClientRect();
-            }
-            
-            // Validate bounds
-            if (!bounds || bounds.width === 0 || bounds.height === 0) {
-              return;
-            }
-            
-            const leftX = mouseX - bounds.x;
-            const topY = mouseY - bounds.y;
-            const center = {
-              x: leftX - bounds.width / 2,
-              y: topY - bounds.height / 2
-            };
-            
-            // Calculate distance with minimum value to avoid Math.log issues
-            const distance = Math.max(1, Math.sqrt(center.x**2 + center.y**2));
-            
-            // Clamp rotation values to prevent extreme tilts
-            const maxRotation = 15; // degrees
-            const rotationAmount = Math.min(maxRotation, Math.log(distance) * 2);
-            
-            // Calculate rotation axes with clamping
-            const rotateX = Math.max(-1, Math.min(1, center.y / 200));
-            const rotateY = Math.max(-1, Math.min(1, -center.x / 200));
-            
-            // Only apply transform if values are valid
-            if (isFinite(rotationAmount) && isFinite(rotateX) && isFinite(rotateY)) {
-              wrapper.style.transform = `
-                perspective(1000px)
-                scale3d(1.03, 1.03, 1.03)
-                rotate3d(${rotateX}, ${rotateY}, 0, ${rotationAmount}deg)
-              `;
-            }
-          });
-        };
-        
-        const resetStyles = () => {
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-          }
-          
-          isHovering = false;
-          wrapper.dataset.isHovering = 'false';
-          wrapper.style.transform = `
-            perspective(1000px)
-            scale3d(1, 1, 1)
-            rotate3d(0, 0, 0, 0deg)
-          `;
-          bounds = null;
-        };
-        
-        wrapper.addEventListener('mouseenter', () => {
-          isHovering = true;
-          wrapper.dataset.isHovering = 'true';
-          bounds = wrapper.getBoundingClientRect();
-        });
-        
-        wrapper.addEventListener('mousemove', rotateToMouse);
-        wrapper.addEventListener('mouseleave', resetStyles);
+      VanillaTilt.init(Array.from(wrappers), {
+        max: 8,
+        speed: 400,
+        scale: 1.03,
+        perspective: 1000,
+        easing: 'cubic-bezier(.03,.98,.52,.99)',
+        reset: true,
+        'reset-to-start': true,
+        glare: false,
+        'mouse-event-element': null,
+        gyroscope: false
       });
     }
 

@@ -39,13 +39,14 @@
   "author": "Dmitri Voronianski <dmitri.voronianski@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.6.5",
     "dotenv-webpack": "^8.1.0",
+    "express": "^4.18.2",
     "three": "^0.171.0",
+    "vanilla-tilt": "^1.8.1",
     "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.2.0",
-    "express": "^4.18.2",
-    "axios": "^1.6.5"
+    "webpack-dev-server": "^5.2.0"
   },
   "devDependencies": {
     "browserify": "^16.1.0",
