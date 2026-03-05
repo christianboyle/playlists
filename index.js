@@ -489,38 +489,18 @@ async function initializeApp() {
     }
 
     function setupScrollHandler(container) {
-      // For list view
+      // List view: convert vertical wheel to horizontal scroll (native delta, no acceleration)
       container.addEventListener('wheel', (e) => {
         const isGridView = container.classList.contains('grid-view');
         if (!isGridView) {
           e.preventDefault();
-          const scrollAmount = e.deltaY * 14;
-          const currentScroll = container.scrollLeft;
-          const maxScroll = container.scrollWidth - container.clientWidth;
-          const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
-          
-          container.scrollTo({
-            left: newScrollPosition,
-            behavior: 'smooth'
+          container.scrollBy({
+            left: e.deltaY,
+            behavior: 'auto'
           });
         }
       }, { passive: false });
-
-      // For grid view
-      document.body.addEventListener('wheel', (e) => {
-        const isGridView = container.classList.contains('grid-view');
-        if (isGridView) {
-          const scrollAmount = e.deltaY * 3;  // Reduced multiplier for smoother vertical scroll
-          const currentScroll = window.scrollY;
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          const newScrollPosition = Math.max(0, Math.min(currentScroll + scrollAmount, maxScroll));
-          
-          window.scrollTo({
-            top: newScrollPosition,
-            behavior: 'smooth'
-          });
-        }
-      });
+      // Grid view: no custom handler - native vertical scroll
     }
 
     function setupGridView(playlistsContainer) {
